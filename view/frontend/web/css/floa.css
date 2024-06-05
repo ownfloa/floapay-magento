@@ -1,0 +1,768 @@
+/**
+  * 2021 Floa BANK
+  *
+  * THE MIT LICENSE
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+  * Software.
+  *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+  * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  * IN THE SOFTWARE.
+  *
+  * @author    FLOA Bank
+  * @copyright 2021 FLOA Bank
+  * @license   https://opensource.org/licenses/MIT The MIT License
+*/
+
+/* FLOA Magento CSS */
+#floa-all-payment-methods * {
+  box-sizing: border-box;
+}
+#floa-all-payment-methods input:focus,
+#floa-all-payment-methods input:focus-visible {
+  box-shadow: none;
+}
+#floa-all-payment-methods .payment-method-title > label > img {
+  height: 22px;
+  vertical-align: bottom;
+}
+#floa-all-payment-methods .payment-method-title > label > span {
+  font-size: 14px;
+  text-transform: uppercase;
+}
+.payment-floa-hidden {
+    display:none!important;
+}
+/* FLOA Main CSS */
+.fl-dnone {
+  display: none !important;
+}
+.fl-jccenter {
+  justify-content: center !important;
+}
+.fl-jcbetween {
+  justify-content: space-between !important;
+}
+.fl-jcstart {
+  justify-content: flex-start !important;
+}
+.fl-aicenter {
+  align-items: center !important;
+}
+.fl-diflex {
+  display: inline-flex !important;
+}
+.fl-aistart {
+  align-items: flex-start !important;
+}
+.fl-asstrech {
+  align-self: stretch !important;
+}
+.fd-row {
+  flex-direction: row !important;
+}
+.fd-col {
+  flex-direction: column !important;
+}
+.fl-gap-0 {
+  gap: 0 !important;
+}
+.fl-gap-4 {
+  gap: 4px !important;
+}
+.fd-gap-24 {
+  gap: 24px;
+}
+#fl-payment-options {
+  position: relative;
+  border-radius: 10px;
+  box-shadow: 0 16px 24px 0 rgba(22, 22, 22, 0.12);
+  padding: 0;
+  margin-bottom: 30px;
+}
+#fl-payment-options .fl-payment-loader {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: none;
+}
+#fl-payment-options .fl-payment-loader .fl-payment-loader-icon {
+  border: 10px solid #f3f3f3;
+  border-top: 10px solid #3498db;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  animation: spin 2s linear infinite !important;
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+#fl-payment-options .fl-payment-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+}
+#fl-payment-options .fl-payment-container .fl-payment-form,
+#fl-payment-options .fl-payment-container .fl-payment-summary {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  width: 50%;
+  padding: 30px;
+}
+#fl-payment-options .fl-payment-container .fl-payment-summary {
+  justify-content: center;
+  align-items: center;
+}
+#fl-payment-options .fl-payment-form {
+  border-radius: 10px 0 0 10px;
+  background-color: #fff;
+}
+@media screen and (max-width: 768px) {
+  #fl-payment-options .fl-payment-form {
+    width: 100% !important;
+    padding: 0 15px 15px 15px !important;
+    border-radius: 10px !important;
+  }
+}
+#fl-payment-options .fl-payment-form > form {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top,
+#fl-payment-options .fl-payment-form .fl-form-middle,
+#fl-payment-options .fl-payment-form .fl-form-bottom {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+#fl-payment-options .fl-payment-form .fl-form-top {
+  gap: 20px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-payment-methods {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+@media screen and (max-width: 768px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-methods {
+    flex-direction: column;
+    align-items: start;
+  }
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  width: 50%;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method {
+  margin-bottom: 14px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method > label {
+  margin-bottom: 0;
+  padding: 0 0 0 4px !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method > label > img {
+  vertical-align: bottom;
+  max-width: 100%;
+  max-height: 18px;
+  height: auto;
+}
+@media screen and (max-width: 768px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method > label > img {
+    display: none;
+  }
+}
+@media screen and (max-width: 1200px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method > label > img {
+    max-height: 14px;
+  }
+}
+@media screen and (max-width: 1200px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method:first-child,
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method:nth-child(3) {
+    margin-bottom: 10px;
+  }
+}
+@media screen and (max-width: 768px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-method {
+    margin-bottom: 0 !important;
+    padding: 16px 0 16px 8px;
+    border-bottom: 1px solid rgba(246, 246, 246, 1);
+    width: 100% !important;
+    gap: 16px;
+  }
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-payment-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(50, 50, 50, 1);
+}
+@media screen and (max-width: 768px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-payment-info {
+    text-align: center !important;
+  }
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-method-label {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 5px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-method-label .fl-label-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-method-label .fl-label-title > img {
+  max-width: 100%;
+  max-height: 18px;
+  height: auto;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-method-label .fl-label-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9a9ca3;
+}
+@media screen and (min-width: 768px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-method-label {
+    display: none!important;
+  }
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: #F6F6F8 !important;
+  border-radius: 4px;
+  width: 100%;
+  padding: 8px 14px 8px 14px;
+  gap: 10px;
+}
+@media screen and (min-width: 768px) {
+  #fl-payment-options .fl-payment-form .fl-form-top .floa-payment-mobile-section {
+    display: none;
+  }
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-steps-container {
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  gap: 24px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-dates {
+  flex: 1 1 0;
+  height: 100%;
+  gap: 8px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-all-steps {
+  align-items: stretch;
+  gap: 24px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-steps {
+  width: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-lines-steps {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  color: #323232;
+  font-weight: 400;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-lines-steps:first-child {
+  font-weight: 600 !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-date,
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-amount {
+  max-width: 69%;
+  font-size: 10px;
+  line-height: 16px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-amount {
+  max-width: 29%;
+  text-align: right;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-total-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  width: 100%;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-total,
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-fees {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  line-height: 16px;
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-total {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(58, 58, 58, 1);
+}
+#fl-payment-options .fl-payment-form .fl-form-top .fl-mobile-summary-panel .fl-fees {
+  font-size: 10px;
+  color: #009FFF;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle fieldset .field {
+  margin: 0 !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 4px;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif .mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname .mage-error {
+  margin-top: 0 !important;
+  font-size: 10px;
+  color: #d31e1a;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > div,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > div {
+  width: 100%;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > label,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 0;
+  text-align: left !important;
+  color: rgba(58, 58, 58, 1);
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > select,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > div input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > input,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > input {
+  width: 100%;
+  font-size: 14px !important;
+  height: 20px !important;
+  border: 0;
+  border-bottom: 1px #E1E1E1 solid !important;
+  background-color: transparent !important;
+  padding: 0 5px 0 0;
+  color: #3A3A3A !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > select::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > div input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > input::placeholder,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > input::placeholder {
+  color: #929292 !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > select:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > div input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > input:focus,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > input:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > select:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > input:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > input:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > input:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > input:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > input:focus-visible,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > input:focus-visible {
+  border: 0 !important;
+  border-bottom: 1px #323232 solid !important;
+  outline: none;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date > input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-civility > select.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname > input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > div input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone > input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate > input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code > input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-nif > input.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname > input.mage-error {
+  border-color: #d31e1a !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname #fl-birthname.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname #fl-second-lastname.mage-error {
+  background: url("../images/person-error.svg") no-repeat !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate #fl-birthdate.mage-error,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date #fl-report-date.mage-error {
+  background: url("../images/calendar-error.svg") no-repeat !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code #fl-postal-code.mage-error {
+  background: url("../images/position-error.svg") no-repeat !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone.fl-error .iti__selected-flag {
+  background-color: #d31e1a !important;
+  color: #fff !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone.fl-error .iti__arrow {
+  border-color: #fff !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthname #fl-birthname.valid,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-second-lastname #fl-second-lastname.valid {
+  background: url("../images/person-valid.svg") no-repeat !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-birthdate #fl-birthdate.valid,
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-report-date #fl-report-date.valid {
+  background: url("../images/calendar-valid.svg") no-repeat !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-postal-code #fl-postal-code.valid {
+  background: url("../images/position-valid.svg") no-repeat !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone.fl-valid .iti__selected-flag {
+  background-color: #009fff !important;
+  color: #fff !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle .fl-payment-phone.fl-valid .iti__arrow {
+  border-color: #fff !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-birthname,
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-second-lastname {
+  padding-left: 30px;
+  background: url("../images/person.svg") no-repeat;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-birthdate,
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-report-date {
+  padding-left: 30px;
+  background: url("../images/calendar.svg") no-repeat;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-birthdate::-webkit-inner-spin-button,
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-report-date::-webkit-inner-spin-button,
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-birthdate::-webkit-calendar-picker-indicator,
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-report-date::-webkit-calendar-picker-indicator {
+  position: absolute;
+  width: 100%;
+  left: 10%;
+  opacity: 0;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle #fl-postal-code {
+  padding-left: 30px;
+  background: url("../images/position.svg") no-repeat;
+}
+#fl-payment-options .fl-payment-form .fl-form-middle > fieldset,
+#fl-payment-options .fl-payment-form .fl-form-bottom > fieldset {
+  margin-bottom: 0 !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 12px;
+  color: #323232;
+  text-align: left;
+  gap: 4px;
+  margin: 0 !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line > input {
+  margin: 3px;
+  width: 10px;
+  height: 10px;
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line > label {
+  width: calc(100% - 20px);
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line > label > a {
+  text-decoration: underline;
+  font-weight: 600;
+  color: rgba(0, 159, 255, 1);
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line:last-child {
+  margin-bottom: 0 !important;
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line div.mage-error {
+  margin-left: 20px;
+  margin-top: 0 !important;
+  font-size: 8px;
+  color: #d31e1a;
+}
+#fl-payment-options .fl-payment-form .fl-form-bottom .fl-eligibility-info-line > input.mage-error {
+  outline: 1px solid #d31e1a !important;
+}
+#fl-payment-options .fl-payment-summary {
+  background-color: #F6F6F8 !important;
+  border-radius: 0 10px 10px 0;
+}
+@media screen and (max-width: 768px) {
+  #fl-payment-options .fl-payment-summary {
+    display: none !important;
+  }
+}
+#fl-payment-options .fl-payment-summary .fl-payment-summary-panel {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+#fl-payment-options .fl-payment-summary .fl-top-container {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-payment-gauge {
+  width: 100%;
+  margin-top: 16px;
+  margin-bottom: 0.5rem;
+}
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-payment-due {
+  position: absolute !important;
+  text-align: center;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-payment-due > h2 {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(50, 50, 50, 1);
+}
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-payment-due > p {
+  line-height: 13px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #323232 !important;
+  margin-bottom: 0 !important;
+}
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-gauge-img {
+  width: 80%;
+}
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-gauge-min,
+#fl-payment-options .fl-payment-summary .fl-top-container .fl-gauge-max {
+  width: 50%;
+  padding-right: 15px;
+  padding-left: 15px;
+  float: left;
+  color: #9A9CA3 !important;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 0 !important;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container {
+  width: 100%;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-steps-container {
+  width: 100%;
+  height: 100%;
+  align-items: flex-end;
+  gap: 16px;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-dates {
+  flex: 1 1 0;
+  height: 100%;
+  gap: 15px;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-all-steps {
+  align-items: stretch;
+  gap: 24px;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-steps {
+  width: 18px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-lines-steps {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  color: #323232;
+  font-size: 14px;
+  font-weight: 400;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-lines-steps:first-child {
+  font-weight: 600 !important;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-date,
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-amount {
+  max-width: 69%;
+  font-size: 14px;
+}
+#fl-payment-options .fl-payment-summary .fl-middle-container .fl-amount {
+  max-width: 29%;
+  text-align: right;
+}
+#fl-payment-options .fl-payment-summary .fl-bottom-container {
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  width: 100%;
+}
+#fl-payment-options .fl-payment-summary .fl-bottom-container .fl-total-bot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  padding: 16px;
+}
+#fl-payment-options .fl-payment-summary .fl-bottom-container .fl-total,
+#fl-payment-options .fl-payment-summary .fl-bottom-container .fl-fees {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}
+#fl-payment-options .fl-payment-summary .fl-bottom-container .fl-total {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(58, 58, 58, 1);
+}
+#fl-payment-options .fl-payment-summary .fl-bottom-container .fl-fees {
+  font-size: 14px;
+  color: #009FFF;
+}
+@keyframes animateModal {
+  from {
+    top: 0;
+    opacity: 0;
+  }
+  to {
+    top: 50%;
+    opacity: 1;
+  }
+}
+#floaModal {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: black;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+#floaModal .modal-content {
+  position: relative;
+  max-width: 650px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-name: animateModal;
+  animation-duration: 0.6s;
+  animation-fill-mode: forwards;
+}
+@media screen and (max-width: 768px) {
+  #floaModal .modal-content {
+    top: 0 !important;
+    left: 0 !important;
+    transform: unset !important;
+  }
+}
+#floaModal .modal-content .button {
+  padding: 10px 30px;
+  background: #009FFF;
+  color: white;
+  text-transform: uppercase;
+  border: none;
+  float: right;
+}
+#floaModal .modal-content .close {
+  position: absolute;
+  z-index: 10000;
+  top: 0;
+  right: 0;
+  color: grey;
+  font-size: 28px;
+  font-weight: bold;
+  padding: 4px 6px;
+}
+@media screen and (max-width: 768px) {
+  #floaModal .modal-content .close {
+    position: fixed;
+  }
+}
+#floaModal .modal-content .close:hover,
+#floaModal .modal-content .close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+  

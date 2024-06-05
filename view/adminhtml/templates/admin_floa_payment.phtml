@@ -1,0 +1,104 @@
+<?php
+/**
+ * 2021 Floa BANK
+ *
+ * THE MIT LICENSE
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ *
+ * @author    FLOA Bank
+ * @copyright 2021 FLOA Bank
+ * @license   https://opensource.org/licenses/MIT The MIT License
+ */
+?>
+<?php if ($block->isFloaOrder()) { ?>
+    <section class="admin__page-section order-view-billing-shipping">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $block->escapeHtml(__('FLOA Pay Payment information')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <?php if ($block->isPayableOrder()) { ?>
+                <p style="color:red;"><?= $block->escapeHtml(__('PLEASE NOTE, payment capture has not yet been performed for this order.')) ?></p>
+                <a class="action-default scalable action-secondary" href="<?= $block->escapeHtmlAttr($block->getBackendOrderUrl('pay')) ?>">
+                <?= $block->escapeHtml(__('Capture payment')) ?></a>
+                <br /><br />
+            <?php } ?>
+            <div class="admin__page-section-item">
+                <p><?= $block->escapeHtml(__('FLOA Pay order reference')) ?> : <strong><?= $block->escapeHtml($block->getFloaOrderRef()) ?></strong></p>
+                <p><?= $block->escapeHtml(__('Payment method')) ?> : <strong><?= $block->escapeHtml(strtoupper($block->getFloaPaymentMethod())) ?></strong></p>
+                <p><?= $block->escapeHtml(__('Total amount')) ?> : <strong><?= $block->escapeHtml($block->toDecimalPrice($block->getFloaTotalAmount()-$block->getFloaFeesAmount())) ?></strong></p>
+                <p><?= $block->escapeHtml(__('Fees amount')) ?> : <strong><?= $block->escapeHtml($block->toDecimalPrice($block->getFloaFeesAmount())) ?></strong></p>
+                <?php if ($block->getFloaOrderCancelable()) { ?>
+                    <div>
+                        <form id="floa-refund-form" method="GET" action="<?= $block->escapeHtmlAttr($block->getBackendOrderUrl('refund')) ?>">
+                            <input type="text" class="admin__control-text" name="amountToRefund" />
+                            <input type="hidden" name="oldAmount" value="<?= $block->escapeHtml($block->getOldAmount()) ?>" />
+                            <input type="submit" class="action-default scalable action-secondary" value="<?= $block->escapeHtmlAttr(__('Make refund')) ?>" />
+                        </form>
+                        <div><?= $block->escapeHtml(__('Maximum refund amount')) ?> : <strong><?= $block->escapeHtml($block->toDecimalPrice($block->getOldAmount())) ?></strong></div>
+                    </div>
+                    <br />
+                <?php } ?>
+                <?php if (count($block->getPartialsCancels()) > 0) { ?>
+                    <div class="admin__page-section-item-title">
+                        <span class="title"><?= $block->escapeHtml(__('Refunds')) ?></span>
+                    </div>
+                    <table class="data-table admin__table-primary edit-order-table" style="margin-bottom: 2em">
+                        <thead>
+                            <tr class="headings">
+                                <th><?= $block->escapeHtml(__('Date')) ?></th>
+                                <th><?= $block->escapeHtml(__('Due amount')) ?></th>
+                            </tr>
+                        </thead>                    
+                        <?php foreach ($block->getPartialsCancels() as $key => $refund) { ?>
+                            <tbody class="<?= (($key % 2 == 0) ? 'odd' : 'even') ?>">
+                                <tr class="border">
+                                    <td><?= $block->escapeHtml($refund['date']); ?></td>
+                                    <td><?= $block->escapeHtml($block->toDecimalPrice($refund['amount'])); ?></td>
+                                </tr>
+                            </tbody>
+                        <?php } ?>
+                    </table>
+                <?php } ?>                         
+                <?php if (isset($block->getSchedules()['schedules'])) { ?>
+                    <div class="admin__page-section-item-title">
+                        <span class="title"><?= $block->escapeHtml(__('Schedules')) ?></span>
+                    </div>
+                    <table class="data-table admin__table-primary edit-order-table" style="margin-bottom: 2em">
+                        <thead>
+                            <tr class="headings">
+                                <th><span><?= $block->escapeHtml(__('Rank')) ?></span></th>
+                                <th><span><?= $block->escapeHtml(__('Date')) ?></span></th>
+                                <th><span><?= $block->escapeHtml(__('Due amount')) ?></span></th>
+                                <th><span><?= $block->escapeHtml(__('State')) ?></span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="even">
+                            <?php if (is_array($block->getSchedules()['schedules'])) { ?>
+                                <?php foreach ($block->getSchedules()['schedules'] as $schedule) { ?>
+                                    <tr>
+                                        <td><strong><?= $block->escapeHtml($schedule->rank) ?></strong></td>
+                                        <td><?= $block->escapeHtml(date('d/m/Y', strtotime($schedule->date))) ?></td>
+                                        <td><?= $block->escapeHtml($block->toDecimalPrice($schedule->amount)) ?></td>
+                                        <td><?= $block->escapeHtml($schedule->state) ?></td>
+                                    </tr>
+                                <?php } ?>
+                            <?php } ?>                         
+                        </tbody>
+                    </table>
+                <?php } ?>                         
+            </div>
+        </div>
+    </section>
+<?php } ?>

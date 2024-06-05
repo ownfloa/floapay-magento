@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<!--
+	/**
+	* 2021 Floa BANK
+	*
+	* THE MIT LICENSE
+	*
+	* Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+	* documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+	* the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+	* to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+	* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+	* Software.
+	*
+	* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+	* WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+	* CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+	* IN THE SOFTWARE.
+	*
+	* @author    FLOA Bank
+	* @copyright 2021 FLOA Bank
+	* @license   https://opensource.org/licenses/MIT The MIT License
+	*/
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../validator.xsd">
+    <fields>
+        <field class="civility" name="civility" type="select" payment_code="all">
+            <label>Civility</label>
+            <required>true</required>
+            <choose>
+                <option value="Mr">M.</option>
+                <option value="Mrs">Mrs</option>
+            </choose>
+            <invalid-message>Civility is mandatory.</invalid-message>
+        </field>
+        <field class="birthname"  name="maiden_name" type="text" payment_code="all">
+            <label>Birth name</label>
+            <required>false</required>
+            <required-if field="civility" value="Mrs"/>
+            <invalid-message>Maiden name is mandatory.</invalid-message>
+            <validator-method>IsValidMaidenName</validator-method>
+        </field>
+        <field class="birthdate" name="birth_date" type="date" payment_code="all">
+            <label>Your date of birth</label>
+            <required>true</required>
+            <validator-method>isMajorCustomer</validator-method>
+            <invalid-message>Birth date is mandatory.</invalid-message>
+        </field>
+        <field class="postal-code" name="birth_zip" type="text" payment_code="all">
+            <label>Your postal code of birth</label>
+            <required>false</required>
+            <pattern>/^\d{4}|$/</pattern>
+            <js-validation-name>zip-code-custom</js-validation-name>
+            <invalid-message>Postal code is invalid.</invalid-message>
+        </field>
+        <field class="phone" name="phone_number" type="text" payment_code="all">
+            <label>Phone number</label>
+            <required>true</required>
+            <pattern>/^([+])?\d{9,13}$/</pattern>
+            <invalid-message>Please enter a valid phone number.</invalid-message>
+            <js-validation-name>phone-custom</js-validation-name>
+        </field>
+        <field class="accept-data-collect" name="accept_data_collect" type="checkbox" payment_code="all">
+            <label>By validating this information, you agree that your data will be used for the purpose of evaluating your eligibility for payment in installments.</label>
+            <required>true</required>
+            <invalid-message>To continue, you must agree to your personal data being processed by FLOA.</invalid-message>
+            <tooltip>More information here.</tooltip>
+        </field>
+        <field class="accept-terms-conditions" name="accept_terms_conditions" type="checkbox" payment_code="all">
+            <label>By validating your choice of payment, you have read and accept the general conditions of payment in installments of FLOA.</label>
+            <required>true</required>
+            <invalid-message>To continue, please accept the terms and conditions.</invalid-message>
+            <tooltip>See here.</tooltip>
+        </field>
+    </fields>
+</config>

@@ -1,0 +1,129 @@
+<?php
+/**
+ * 2021 Floa BANK
+ *
+ * THE MIT LICENSE
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ *
+ * @author    FLOA Bank
+ * @copyright 2021 FLOA Bank
+ * @license   https://opensource.org/licenses/MIT The MIT License
+ */
+?>
+<?php
+/** @var $config array */
+/** @var $block \FLOA\Payment\Block\Payment\TemplateView */
+$paymentCode        = $block->getConfigAttribute($config, 'payment_code');
+$inputType          = $block->getConfigAttribute($config, 'type');
+$fieldName          = $block->getConfigAttribute($config, 'name');
+$class              = $block->getConfigAttribute($config, 'class');
+$isRequired         = $block->getConfigValue($config, 'required');
+$requiredIf         = $block->getConfigValue($config, 'required-if');
+$isOptionalRequireIf = false;
+if ($requiredIf) {
+    $isOptionalRequireIf = $block->getConfigAttribute($requiredIf, 'optional');
+}
+$label              = $block->getConfigValue($config, 'label');
+$jsValidation       = $block->getConfigValue($config, 'js-validation-name');
+$invalidMessage     = $block->getConfigValue($config, 'invalid-message');
+$tooltip            = $block->getConfigValue($config, 'tooltip');
+$customerPhone      = $block->getCustomerTelephone();
+$cgvLink            = $block->getCgvLink();
+$privacyPolicyLink  = $block->getPrivacyPolicyLink();
+?>
+<?php if ("text" === $inputType || "date" === $inputType): ?>
+    <div class="control fl-payment-<?= $block->escapeHtmlAttr($class) ?>">
+        <?php if ($label): ?>
+            <label class="label" data-bind="{attr: {for: '<?= $block->escapeHtml($fieldName) ?>'}}">
+                <?= $block->escapeHtml(__($label)) ?>
+                <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)) : ?><span>*</span><?php endif; ?>
+            </label>
+        <?php endif; ?>
+        <input type="<?= $block->escapeHtmlAttr($inputType) ?>" class="input-text <?= $block->escapeHtmlAttr($class) ?>"
+            data-bind="attr: {
+                name: 'payment'+'[<?= $block->escapeHtml($fieldName) ?>]',
+                autocomplete: 'off',
+            <?php if ($fieldName == "deferred_time"): ?>
+                min: window.checkoutConfig.payment.floa.minDefDate,
+                max: window.checkoutConfig.payment.floa.maxDefDate,
+            <?php elseif ($fieldName == "birth_date"): ?>
+                max: window.checkoutConfig.payment.floa.maxBirthDate,
+            <?php elseif ($fieldName == "phone_number"): ?>
+                value: '<?= $block->escapeHtml($customerPhone) ?>',
+            <?php endif; ?>
+                id: 'fl-<?= $block->escapeHtml($class) ?>',
+                <?php if ($invalidMessage): ?>
+                'data-msg-required': '<?= $block->escapeJs(__($invalidMessage)) ?>',
+                <?php endif; ?>
+                'data-validate': JSON.stringify({
+                    'required': <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)): ?>true<?php else: ?>false<?php endif ?>,
+                <?php if ($jsValidation): ?>
+                    '<?= $block->escapeHtml($jsValidation) ?>': true
+                <?php endif; ?>
+                })
+            }"
+        />
+    </div>
+<?php elseif ($inputType == "select"): ?>
+    <div class="control fl-payment-<?= $block->escapeHtmlAttr($class) ?>">
+        <?php if ($label): ?>
+            <label class="label" data-bind="{attr: {for: '<?= $block->escapeHtml($fieldName) ?>'}}">
+                <?= $block->escapeHtml(__($label)) ?>
+                <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)) : ?><span>*</span><?php endif; ?>
+            </label>
+        <?php endif; ?>
+        <select class="select" aria-invalid="false" data-bind="
+            attr: {
+                name: 'payment'+'[<?= $block->escapeHtml($fieldName) ?>]',
+                id: 'fl-<?= $block->escapeHtml($class) ?>',
+                'data-validate': JSON.stringify({
+                    'required': <?php if ($isRequired): ?>true<?php else: ?>false<?php endif ?>,
+                    <?php if ($jsValidation): ?>
+                        '<?= $block->escapeHtml($jsValidation) ?>': true
+                    <?php endif; ?>
+                }),
+                <?php if ($invalidMessage): ?>
+                'data-msg-required': '<?= $block->escapeHtml(__($invalidMessage)) ?>'
+                <?php endif; ?>
+            }
+        ">
+            <?php
+            $options = $block->getConfigValue($config, 'choose');
+            foreach ($options['option'] as $option):
+                $optionValue = $block->getConfigAttribute($option, 'value');
+                ?>
+                <option value="<?= $block->escapeHtmlAttr($optionValue) ?>" 
+                    data-bind="text: '<?= $block->escapeHtml(__($option['_value'])) ?>'"></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+<?php elseif ("checkbox" == $inputType || "hidden" == $inputType): ?>
+    <input id="fl-<?= $block->escapeHtml($class) ?>"
+           name="<?= $block->escapeHtml($fieldName) ?>"
+           type="<?= $block->escapeHtml($inputType) ?>"
+           data-validate="{required:<?php if ($isRequired): ?>true<?php else: ?>false<?php endif ?>}"
+           <?php if ($invalidMessage): ?>
+           data-msg-required="<?= $block->escapeHtml(__($invalidMessage)) ?>"
+           <?php endif; ?>
+           value="1">
+    <label for="<?= $block->escapeHtml($fieldName) ?>">
+        <?php if ($label): ?>
+            <?= $block->escapeHtml(__($label)) ?>
+        <?php endif; ?>
+        <?php if ($tooltip): ?>
+            <a href="<?= ($fieldName == 'accept_terms_conditions') ? $cgvLink : $privacyPolicyLink ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
+        <?php endif; ?>
+    </label>
+<?php endif; ?>

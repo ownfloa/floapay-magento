@@ -1,0 +1,66 @@
+<?php
+/**
+ * Copyright since 2023 Floa
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.md.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to tech@202-ecommerce.com so we can send you a copy immediately.
+ *
+ * @author 202 ecommerce <tech@202-ecommerce.com>
+ * @copyright 2023 Floa
+ * @license   https://opensource.org/licenses/AFL-3.0  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * @var $block \FLOA\Payment\Block\Product\Widget
+ */
+?>
+<?php if ($block->isEnabled()) : ?>
+    <div data-floa-offers></div>
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "floaWidgetInitializer" : {
+                    "floapay" : {
+                        "url_images" : "<?= $block->getImagesPath() ?>",
+                        "url_product" : "<?= $block->getOfferUrl() ?>",
+                        "url_cgv" : "<?= $block->getCgvUrl() ?>",
+                        "country_code" : "<?= $block->getCountryCode() ?>",
+                        "language_context" : "<?= $block->getLanguageContext() ?>",
+                        "currency_sign" : "<?= $block->getCurrendySign() ?>",
+                        "translations" : {
+                            "without_fees" : "<?= $block->escapeJS(__('without fees')) ?>",
+                            "pay_in" : "<?= $block->escapeJS(__('Pay in')) ?>",
+                            "your_payment_in" : "<?= $block->escapeJS(__('Your payment in several time')) ?>",
+                            "for_an_amount_of" : "<?= $block->escapeJS(__('for an amount of')) ?>",
+                            "for_this_purchase" : "<?= $block->escapeJS(__('For this purchase, you can pay in :')) ?>",
+                            "today" : "<?= $block->escapeJS(__('Today')) ?>",
+                            "total" : "<?= $block->escapeJS(__('Total:')) ?>",
+                            "with_fees" : "<?= $block->escapeJS(__('Including fees:')) ?>",
+                            "how_it_works" : "<?= $block->escapeJS(__('How it works ?')) ?>",
+                            "checkout_choose_floa" : "<?= $block->escapeJS(__('At checkout choose FLOA')) ?>",
+                            "enter_bank_details" : "<?= $block->escapeJS(__('Enter your bank details on the secure FLOA platform')) ?>",
+                            "et_voila" : "<?= $block->escapeJS(__("And that's it. As easy as paying cash.")) ?>",
+                            "immediate_response" : "<?= $block->escapeJS(__('You get an immediate response.')) ?>",
+                            "conditions_acceptance" : "<?= $block->escapeJS(__('Subject to acceptance by FLOA. You have a withdrawal period.')) ?>",
+                            "consult_the" : "<?= $block->escapeJS(__('Consult the')) ?>",
+                            "conditions_here" : "<?= $block->escapeJS(__('conditions here')) ?>",
+                            "paylater" : "<?= $block->escapeJS(__('PAYLATER')) ?>"
+                        },
+                        "offers" : <?= json_encode($block->getOffers()) ?>,
+                        "selectedOffers" : <?= json_encode($block->getSelectedOffer()) ?>,
+                        "type" : "product"
+                    }
+                },
+                "floaProduct" : {}
+            }
+        }
+    </script>
+<?php endif; ?>

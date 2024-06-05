@@ -1,0 +1,26 @@
+{
+    "name": "floa/payment",
+    "description": "Pay in severals installments with FloaPay",
+    "type": "magento2-module",
+    "version": "1.2.1",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Floa Bank",
+            "email": "info@floabank.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require-dev": {
+        "prestashop/php-dev-tools": "3.4"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "FLOA\\Payment\\": ""
+        }
+    },
+    "author": "202-ecommerce"
+}

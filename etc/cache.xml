@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="floaoffers" translate="label,description" instance="FLOA\Payment\Model\Cache\Offers">
+        <label>FloaPay offers</label>
+        <description>Cache for offers - 24 hours for products page and one hour on the checkout page.</description>
+    </type>
+</config>

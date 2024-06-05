@@ -1,0 +1,494 @@
+<?php
+/**
+ * 2021 Floa BANK
+ *
+ * THE MIT LICENSE
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ *
+ * @author    FLOA Bank
+ * @copyright 2021 FLOA Bank
+ * @license   https://opensource.org/licenses/MIT The MIT License
+ */
+
+/** @var $block \FLOA\Payment\Block\Payment\TemplateView */
+$configs = $block->getFormConfiguration();
+?>
+<?php if (!empty($configs)): ?>
+
+<script id="floa-payment-method-tpl" type="text/x-magento-template">
+    <!-- ko foreach: { data: getAllPlans(), as: 'item' } -->
+        <div class="fl-payment-method">
+            <input type="radio"
+                    name="payment[methodFloa]"
+                    class="radio floa-payment-radio"
+                    data-bind="attr: {'id': item.code}, value: item.code, checked: (item.isMethodSelected ? item.code : false), click: window.selectFloaMethod" />
+            <label data-bind="attr: {'for': item.code}" class="label">
+                <img data-bind="attr: {'src': require.toUrl('FLOA_Payment/images/logos/new_floa_' + item.code + '_tiny.svg')}" alt="logo" />
+                <span class="fl-mobile-method-label">
+                    <span class="fl-label-title">
+                        <span data-bind="text: '<?= $block->escapeHtml(__('Payment in')) ?>'"></span>
+                        <img data-bind="attr: {'src': require.toUrl('FLOA_Payment/images/logos/new_floa_' + item.code + '_mobile.svg')}" alt="logo" />
+                    </span>
+                    <span class="fl-label-subtitle">
+                        <span><?= $block->escapeHtml(__('Pay today :')) ?></span>
+                        <!-- ko if: ((item.code == "cb1xd" && window.checkoutConfig.payment.floa.defType != "1") || item.code != "cb1xd") -->
+                            <span data-bind="text: item.schedules[0].amount"></span>
+                        <!-- /ko -->
+                        <!-- ko if: (item.code == "cb1xd" && window.checkoutConfig.payment.floa.defType == "1") -->
+                            <span><?= $block->getFormatedPrice(0) ?></span>
+                        <!-- /ko -->
+                    </span>
+                </span>
+            </label>
+        </div>
+        <div class="floa-payment-mobile-section">
+        <!-- ko template: {name: 'floa-payment-mobile-summary-tpl'} --><!-- /ko -->
+        </div>
+    <!-- /ko -->
+</script>
+
+<script id="floa-payment-tpl" type="text/x-magento-template">
+    <input type="hidden" name="method" data-bind="attr: {id: 'form_floa_code', value: getCode()}" />
+    <fieldset data-bind="
+        attr: {
+            class: 'fieldset payment items billing-address-form ',
+            id: 'payment_form_floa'
+        }">
+        <?php
+        foreach ($configs as $key => $config): ?>
+            <?php
+            $paymentCode  = $block->getConfigAttribute($config, 'payment_code');
+            $fieldName    = $block->getConfigAttribute($config, 'name');
+            $isRequired   = $block->getConfigValue($config, 'required');
+            $style        = $block->getConfigAttribute($config, 'style');
+            $requiredIf   = $block->getConfigValue($config, 'required-if');
+            $isOptionalRequireIf = false;
+            if ($requiredIf) {
+                $isOptionalRequireIf = $block->getConfigAttribute($requiredIf, 'optional');
+            }
+            if ($block->isBottomField($fieldName)) {
+                continue;
+            }
+            $customerGender = $block->getCustomerGender();
+            $customerTelephone = $block->getCustomerTelephone();
+            $customerNIF = $block->getCustomerNif();
+            if ((false === empty($customerGender) && $customerGender === 'Mr' && $fieldName === 'maiden_name')
+                || (false === empty($customerNIF) && $fieldName === 'nationality_id')
+                || (false === empty($customerTelephone) && $fieldName === 'phone_number')
+            ) {
+                if ($fieldName !== 'phone_number') {
+                    continue;
+                }
+                if ($block->validateCustomerPhone() === true) {
+                    continue;
+                }
+            }
+            if (false === empty($customerGender) && $fieldName === 'civility') : ?>
+                <input type="hidden" name="payment[<?= $block->escapeHtml($fieldName) ?>]" id="fl-<?= $block->escapeHtml($fieldName) ?>" value="<?= $block->escapeHtml($customerGender) ?>" />
+            <?php continue; endif; ?>
+            <div class="field <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)): ?>_required<?php endif; ?>"
+                 data-bind="
+                     attr: {id: 'floa_<?= $block->escapeHtml($fieldName) ?>_block'},
+                     <?php if ($fieldName === 'deferred_time'): ?>style: {display: (getSelectedMethodCheckout() == 'cb1xd') ? 'block' : 'none'}<?php endif; ?>
+                     <?php if ($fieldName === 'maiden_name' && empty($customerGender)): ?>style: {display: 'none'}<?php endif; ?>
+                 ">
+                    <?php
+                        $paymentCode        = $block->getConfigAttribute($config, 'payment_code');
+                        $inputType          = $block->getConfigAttribute($config, 'type');
+                        $fieldName          = $block->getConfigAttribute($config, 'name');
+                        $class              = $block->getConfigAttribute($config, 'class');
+                        $isRequired         = $block->getConfigValue($config, 'required');
+                        $requiredIf         = $block->getConfigValue($config, 'required-if');
+                        $isOptionalRequireIf = false;
+                        if ($requiredIf) {
+                            $isOptionalRequireIf = $block->getConfigAttribute($requiredIf, 'optional');
+                        }
+                        $label              = $block->getConfigValue($config, 'label');
+                        $jsValidation       = $block->getConfigValue($config, 'js-validation-name');
+                        $invalidMessage     = $block->getConfigValue($config, 'invalid-message');
+                        $tooltip            = $block->getConfigValue($config, 'tooltip');
+                        $customerPhone      = $block->getCustomerTelephone();
+                        $cgvLink            = $block->getCgvLink();
+                        $privacyPolicyLink  = $block->getPrivacyPolicyLink();
+                    ?>
+                    <?php if ("text" === $inputType || "date" === $inputType): ?>
+                        <div class="control fl-payment-<?= $block->escapeHtmlAttr($class) ?>">
+                            <?php if ($label): ?>
+                                <label class="label" data-bind="attr: {for: '<?= $block->escapeHtml($fieldName) ?>'}">
+                                    <?= $block->escapeHtml(__($label)) ?>
+                                    <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)) : ?><span>*</span><?php endif; ?>
+                                </label>
+                            <?php endif; ?>
+                            <input type="<?= $block->escapeHtmlAttr($inputType) ?>" class="input-text <?= $block->escapeHtmlAttr($class) ?>"
+                                data-bind="attr: {
+                                    name: 'payment'+'[<?= $block->escapeHtml($fieldName) ?>]',
+                                    autocomplete: 'off',
+                                <?php if ($fieldName == "deferred_time"): ?>
+                                    min: window.checkoutConfig.payment.floa.minDefDate,
+                                    max: window.checkoutConfig.payment.floa.maxDefDate,
+                                <?php elseif ($fieldName == "birth_date"): ?>
+                                    max: window.checkoutConfig.payment.floa.maxBirthDate,
+                                <?php elseif ($fieldName == "phone_number"): ?>
+                                    value: '<?= $block->escapeHtml($customerPhone) ?>',
+                                <?php endif; ?>
+                                    id: 'fl-<?= $block->escapeHtml($class) ?>',
+                                    <?php if ($invalidMessage): ?>
+                                    'data-msg-required': '<?= $block->escapeJs(__($invalidMessage)) ?>',
+                                    <?php endif; ?>
+                                    'data-validate': JSON.stringify({
+                                        'required': <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)): ?>true<?php else: ?>false<?php endif ?>,
+                                    <?php if ($jsValidation): ?>
+                                        '<?= $block->escapeHtml($jsValidation) ?>': true
+                                    <?php endif; ?>
+                                    })
+                                }"
+                            />
+                        </div>
+                    <?php elseif ($inputType == "select"): ?>
+                        <div class="control fl-payment-<?= $block->escapeHtmlAttr($class) ?>">
+                            <?php if ($label): ?>
+                                <label class="label" data-bind="attr: {for: '<?= $block->escapeHtml($fieldName) ?>'}">
+                                    <?= $block->escapeHtml(__($label)) ?>
+                                    <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)) : ?><span>*</span><?php endif; ?>
+                                </label>
+                            <?php endif; ?>
+                            <select class="select" aria-invalid="false" data-bind="
+                                attr: {
+                                    name: 'payment'+'[<?= $block->escapeHtml($fieldName) ?>]',
+                                    id: 'fl-<?= $block->escapeHtml($class) ?>',
+                                    'data-validate': JSON.stringify({
+                                        'required': <?php if ($isRequired): ?>true<?php else: ?>false<?php endif ?>,
+                                        <?php if ($jsValidation): ?>
+                                            '<?= $block->escapeHtml($jsValidation) ?>': true
+                                        <?php endif; ?>
+                                    }),
+                                    <?php if ($invalidMessage): ?>
+                                    'data-msg-required': '<?= $block->escapeHtml(__($invalidMessage)) ?>'
+                                    <?php endif; ?>
+                                }
+                            ">
+                                <?php
+                                $options = $block->getConfigValue($config, 'choose');
+                                foreach ($options['option'] as $option):
+                                    $optionValue = $block->getConfigAttribute($option, 'value');
+                                    ?>
+                                    <option value="<?= $block->escapeHtmlAttr($optionValue) ?>" 
+                                        data-bind="text: '<?= $block->escapeHtml(__($option['_value'])) ?>'"></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php elseif ("checkbox" == $inputType || "hidden" == $inputType): ?>
+                        <input id="fl-<?= $block->escapeHtml($class) ?>"
+                            name="<?= $block->escapeHtml($fieldName) ?>"
+                            type="<?= $block->escapeHtml($inputType) ?>"
+                            data-validate="{required:<?php if ($isRequired): ?>true<?php else: ?>false<?php endif ?>}"
+                            <?php if ($invalidMessage): ?>
+                            data-msg-required="<?= $block->escapeHtml(__($invalidMessage)) ?>"
+                            <?php endif; ?>
+                            value="1">
+                        <label for="<?= $block->escapeHtml($fieldName) ?>">
+                            <?php if ($label): ?>
+                                <?= $block->escapeHtml(__($label)) ?>
+                            <?php endif; ?>
+                            <?php if ($tooltip): ?>
+                                <a href="<?= ($fieldName == 'accept_terms_conditions') ? $cgvLink : $privacyPolicyLink ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
+                            <?php endif; ?>
+                        </label>
+                    <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    </fieldset>
+</script>
+
+<script id="floa-payment-bottom-tpl" type="text/x-magento-template">
+    <fieldset data-bind="
+        attr: {
+            class: 'fieldset payment items billing-address-form fl-eligibility-info '
+        }">
+
+        <?php
+        foreach ($configs as $key => $config): ?>
+            <?php
+            $paymentCode  = $block->getConfigAttribute($config, 'payment_code');
+            $fieldName    = $block->getConfigAttribute($config, 'name');
+            $isRequired   = $block->getConfigValue($config, 'required');
+            $style        = $block->getConfigAttribute($config, 'style');
+            $requiredIf   = $block->getConfigValue($config, 'required-if');
+            $isOptionalRequireIf = false;
+            if ($requiredIf) {
+                $isOptionalRequireIf = $block->getConfigAttribute($requiredIf, 'optional');
+            }
+            if (!$block->isBottomField($fieldName)) {
+                continue;
+            }
+            ?>
+            <div class="fl-eligibility-info-line field <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)): ?>_required<?php endif;  ?>"
+                 data-bind="attr: {id: 'floa_<?= $block->escapeHtml($fieldName) ?>_block'}">
+                    <?php
+                        $paymentCode        = $block->getConfigAttribute($config, 'payment_code');
+                        $inputType          = $block->getConfigAttribute($config, 'type');
+                        $fieldName          = $block->getConfigAttribute($config, 'name');
+                        $class              = $block->getConfigAttribute($config, 'class');
+                        $isRequired         = $block->getConfigValue($config, 'required');
+                        $requiredIf         = $block->getConfigValue($config, 'required-if');
+                        $isOptionalRequireIf = false;
+                        if ($requiredIf) {
+                            $isOptionalRequireIf = $block->getConfigAttribute($requiredIf, 'optional');
+                        }
+                        $label              = $block->getConfigValue($config, 'label');
+                        $jsValidation       = $block->getConfigValue($config, 'js-validation-name');
+                        $invalidMessage     = $block->getConfigValue($config, 'invalid-message');
+                        $tooltip            = $block->getConfigValue($config, 'tooltip');
+                        $customerPhone      = $block->getCustomerTelephone();
+                        $cgvLink            = $block->getCgvLink();
+                        $privacyPolicyLink  = $block->getPrivacyPolicyLink();
+                    ?>
+                    <?php if ("text" === $inputType || "date" === $inputType): ?>
+                        <div class="control fl-payment-<?= $block->escapeHtmlAttr($class) ?>">
+                            <?php if ($label): ?>
+                                <label class="label" data-bind="attr: {for: '<?= $block->escapeHtml($fieldName) ?>'}">
+                                    <?= $block->escapeHtml(__($label)) ?>
+                                    <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)) : ?><span>*</span><?php endif; ?>
+                                </label>
+                            <?php endif; ?>
+                            <input type="<?= $block->escapeHtmlAttr($inputType) ?>" class="input-text <?= $block->escapeHtmlAttr($class) ?>"
+                                data-bind="attr: {
+                                    name: 'payment'+'[<?= $block->escapeHtml($fieldName) ?>]',
+                                    autocomplete: 'off',
+                                <?php if ($fieldName == "deferred_time"): ?>
+                                    min: window.checkoutConfig.payment.floa.minDefDate,
+                                    max: window.checkoutConfig.payment.floa.maxDefDate,
+                                <?php elseif ($fieldName == "birth_date"): ?>
+                                    max: window.checkoutConfig.payment.floa.maxBirthDate,
+                                <?php elseif ($fieldName == "phone_number"): ?>
+                                    value: '<?= $block->escapeHtml($customerPhone) ?>',
+                                <?php endif; ?>
+                                    id: 'fl-<?= $block->escapeHtml($class) ?>',
+                                    <?php if ($invalidMessage): ?>
+                                    'data-msg-required': '<?= $block->escapeJs(__($invalidMessage)) ?>',
+                                    <?php endif; ?>
+                                    'data-validate': JSON.stringify({
+                                        'required': <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)): ?>true<?php else: ?>false<?php endif ?>,
+                                    <?php if ($jsValidation): ?>
+                                        '<?= $block->escapeHtml($jsValidation) ?>': true
+                                    <?php endif; ?>
+                                    })
+                                }"
+                            />
+                        </div>
+                    <?php elseif ($inputType == "select"): ?>
+                        <div class="control fl-payment-<?= $block->escapeHtmlAttr($class) ?>">
+                            <?php if ($label): ?>
+                                <label class="label" data-bind="attr: {for: '<?= $block->escapeHtml($fieldName) ?>'}">
+                                    <?= $block->escapeHtml(__($label)) ?>
+                                    <?php if ($isRequired || ($requiredIf && !$isOptionalRequireIf)) : ?><span>*</span><?php endif; ?>
+                                </label>
+                            <?php endif; ?>
+                            <select class="select" aria-invalid="false" data-bind="
+                                attr: {
+                                    name: 'payment'+'[<?= $block->escapeHtml($fieldName) ?>]',
+                                    id: 'fl-<?= $block->escapeHtml($class) ?>',
+                                    'data-validate': JSON.stringify({
+                                        'required': <?php if ($isRequired): ?>true<?php else: ?>false<?php endif ?>,
+                                        <?php if ($jsValidation): ?>
+                                            '<?= $block->escapeHtml($jsValidation) ?>': true
+                                        <?php endif; ?>
+                                    }),
+                                    <?php if ($invalidMessage): ?>
+                                    'data-msg-required': '<?= $block->escapeHtml(__($invalidMessage)) ?>'
+                                    <?php endif; ?>
+                                }
+                            ">
+                                <?php
+                                $options = $block->getConfigValue($config, 'choose');
+                                foreach ($options['option'] as $option):
+                                    $optionValue = $block->getConfigAttribute($option, 'value');
+                                    ?>
+                                    <option value="<?= $block->escapeHtmlAttr($optionValue) ?>" 
+                                        data-bind="text: '<?= $block->escapeHtml(__($option['_value'])) ?>'"></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php elseif ("checkbox" == $inputType || "hidden" == $inputType): ?>
+                        <input id="fl-<?= $block->escapeHtml($class) ?>"
+                            name="<?= $block->escapeHtml($fieldName) ?>"
+                            type="<?= $block->escapeHtml($inputType) ?>"
+                            data-validate="{required:<?php if ($isRequired): ?>true<?php else: ?>false<?php endif ?>}"
+                            <?php if ($invalidMessage): ?>
+                            data-msg-required="<?= $block->escapeHtml(__($invalidMessage)) ?>"
+                            <?php endif; ?>
+                            value="1">
+                        <label for="<?= $block->escapeHtml($fieldName) ?>">
+                            <?php if ($label): ?>
+                                <?= $block->escapeHtml(__($label)) ?>
+                            <?php endif; ?>
+                            <?php if ($tooltip): ?>
+                                <a href="<?= ($fieldName == 'accept_terms_conditions') ? $cgvLink : $privacyPolicyLink ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
+                            <?php endif; ?>
+                        </label>
+                    <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    </fieldset>
+</script>
+
+<script id="floa-payment-summary-tpl" type="text/x-magento-template">
+    <!-- ko foreach: { data: getAllPlans(), as: 'item' } -->
+    <div class="fl-payment-summary-panel" data-bind="attr: {'id':'payment_summary_' + item.code}, style: {'display': ( item.isMethodSelected == false) ? 'none' : 'flex'}">
+        <div class="fl-top-container">
+            <div class="fl-payment-gauge">
+                <img class="fl-gauge-img" 
+                     data-bind="attr: {
+                        'src': require.toUrl('FLOA_Payment/images/payment_due_' + item.code + '.svg'),
+                        'alt': 'Logo ' + item.code
+                    }"
+                />
+                <div class="fl-payment-due">
+                    <h2 data-bind="text: item.schedules[0].amount"></h2>
+                    <!-- ko if: ( item.code == "cb1xd" && window.checkoutConfig.payment.floa.defType > 0 ) -->
+                        <p data-bind="text: '<?= $block->escapeHtml(__('Deferred payment')) ?>'"></p>
+                    <!-- /ko -->
+                    <!-- ko if: ( item.code != "cb1xd" || window.checkoutConfig.payment.floa.defType == 0 ) -->
+                        <p data-bind="text: '<?= $block->escapeJs(__('Pay today')) ?>'"></p>
+                    <!-- /ko -->
+                </div>
+            </div>
+            <div class="fl-gauge-min"><?= $block->getFormatedPrice(0) ?></div>
+            <div class="fl-gauge-max" data-bind="text: item.amount"></div>
+        </div>
+        <div class="fl-middle-container">
+            <div class="fl-steps-container fl-jcstart fl-diflex fd-col">
+                <div class="fl-all-steps fl-jcstart fl-diflex fl-aistart fl-asstrech fd-row">
+                    <div class="fl-steps">
+                        <img data-bind="attr: {
+                            'alt': item.code + ' step',
+                            'src': require.toUrl('FLOA_Payment/images/floapay-steps-' + item.code + '.svg')
+                            }"
+                        />
+                    </div>
+                    <div class="fl-dates fl-diflex fl-aistart fd-col fl-jcbetween" data-bind="css: {'fl-gap-4': item.echs == 4}">
+                        <!-- ko if: ( item.schedules && item.schedules.length > 0 ) -->
+                            <!-- ko foreach: { data: item.schedules, as: 'schedule' } -->
+                                <!-- ko if: ( item.code == "cb1xd" && schedule.key == 0 ) -->
+                                <span class="fl-lines-steps">
+                                    <span class="fl-date fl-bold" data-bind="text: '<?= $block->escapeJs(__('Today')) ?>'"></span>
+                                    <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                                </span>
+                                <!-- /ko -->
+                                <!-- ko if: ( schedule.key == 0 && item.echs > 4 ) || ( schedule.key >= 0 && item.echs <= 4 ) -->
+                                <span class="fl-lines-steps">
+                                    <!-- ko if: schedule.key == 0 && item.code != "cb1xd" -->
+                                    <span class="fl-date" data-bind="css: {'fl-bold': schedule.key == 0}, text: '<?= $block->escapeJs(__('Today')) ?>'"></span>
+                                    <!-- /ko -->
+                                    <!-- ko if: schedule.key > 0 || ( schedule.key == 0 && item.code == "cb1xd" ) -->
+                                    <span class="fl-date" data-bind="css: {'fl-bold': schedule.key == 0}, html: schedule.date_formatted"></span>
+                                    <!-- /ko -->
+                                    <span class="fl-amount" data-bind="css: {'fl-bold': schedule.key == 0}, text: schedule.amount"></span>
+                                </span>
+                                <!-- /ko -->
+                                <!-- ko if: schedule.key == 1 && item.echs > 4 -->
+                                <span class="fl-lines-steps">
+                                    <span class="fl-date" data-bind="text: '<?= $block->escapeHtml(__('Followed by 9 monthly payments')) ?>'"></span>
+                                    <span class="fl-amount" data-bind="text: schedule.amount"></span>
+                                </span>
+                                <!-- /ko -->
+                            <!-- /ko -->
+                        <!-- /ko -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fl-bottom-container">
+            <div class="fl-total-bot">
+                <div class="fl-total">
+                    <span data-bind="text: '<?= $block->escapeHtml(__('Total:')) ?>'"></span>
+                    <span data-bind="text: item.amount"></span>
+                </div>
+                <!-- ko if: window.checkoutConfig.payment.floa.countryCode != 'PT' -->
+                    <div class="fl-fees">
+                        <span data-bind="text: '<?= $block->escapeHtml(__('Including fees:')) ?>'"></span>
+                        <!-- ko if: item.rawFees > 0 -->
+                        <span data-bind="text: item.fees"></span>
+                        <!-- /ko -->
+                        <!-- ko if: ( item.rawFees <= 0 ) -->
+                        <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                        <!-- /ko -->
+                    </div>
+                <!-- /ko -->
+            </div>
+        </div>
+    </div>
+    <!-- /ko -->
+</script>
+
+<script id="floa-payment-mobile-summary-tpl" type="text/x-magento-template">
+    <div class="fl-mobile-summary-panel" data-bind="attr: {'id': 'payment_mobile_summary_' + item.code}, css: {'payment-floa-hidden': ( item.isMethodSelected == false)}">
+        <div class="fl-steps-container fl-jcstart fl-diflex fd-col">
+            <div class="fl-all-steps fl-jcstart fl-diflex fl-aistart fl-asstrech fd-row">
+                <div class="fl-steps">
+                    <img alt="step" data-bind="attr: {'src': require.toUrl('FLOA_Payment/images/floapay-steps-' + item.code + '.svg')}" />
+                </div>
+                <div class="fl-dates fl-diflex fl-aistart fd-col fl-jcbetween" data-bind="css: {'fl-gap-0': item.echs == 4}">
+                    <!-- ko if: ( item.schedules && item.schedules.length > 0 ) -->
+                        <!-- ko foreach: { data: item.schedules, as: 'schedule' } -->
+                            <!-- ko if: ( item.code == "cb1xd" && schedule.key == 0 ) -->
+                                <span class="fl-lines-steps">
+                                    <span class="fl-date fl-bold" data-bind="text: '<?= $block->escapeJs(__('Today')) ?>'"></span>
+                                    <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                                </span>
+                            <!-- /ko -->
+                            <!-- ko if: ( schedule.key == 0 && item.echs > 4 ) || ( schedule.key >= 0 && item.echs <= 4 ) -->
+                                <span class="fl-lines-steps">
+                                    <!-- ko if: schedule.key == 0 && item.code != "cb1xd" -->
+                                    <span class="fl-date" data-bind="css: {'fl-bold': schedule.key == 0}, text: '<?= $block->escapeJs(__('Today')) ?>'"></span>
+                                    <!-- /ko -->
+                                    <!-- ko if: schedule.key > 0 || ( schedule.key == 0 && item.code == "cb1xd" ) -->
+                                    <span class="fl-date" data-bind="css: {'fl-bold': schedule.key == 0}, html: schedule.date_formatted"></span>
+                                    <!-- /ko -->
+                                    <span class="fl-amount" data-bind="css: {'fl-bold': schedule.key == 0}, text: schedule.amount"></span>
+                                </span>
+                            <!-- /ko -->
+                            <!-- ko if: schedule.key == 1 && item.echs > 4 -->
+                                <span class="fl-lines-steps">
+                                    <span class="fl-date" data-bind="text: '<?= $block->escapeHtml(__('Followed by 9 monthly payments')) ?>'"></span>
+                                    <span class="fl-amount" data-bind="text: schedule.amount"></span>
+                                </span>
+                            <!-- /ko -->
+                        <!-- /ko -->
+                    <!-- /ko -->
+                </div>
+            </div>
+        </div>
+        <div class="fl-total-container">
+            <div class="fl-total">
+                <span data-bind="text: '<?= $block->escapeHtml(__('Total:')) ?>'"></span>
+                <span data-bind="text: item.amount"></span>
+            </div>
+            <!-- ko if: window.checkoutConfig.payment.floa.countryCode != 'PT' -->
+            <div class="fl-fees">
+                <span data-bind="text: '<?= $block->escapeHtml(__('Including fees:')) ?>'"></span>
+                <!-- ko if: item.rawFees > 0 -->
+                <span data-bind="text: item.fees"></span>
+                <!-- /ko -->
+                <!-- ko if: ( item.rawFees <= 0 ) -->
+                <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                <!-- /ko -->
+            </div>
+            <!-- /ko -->
+        </div>
+    </div>
+</script>
+
+<?php endif; ?>

@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="config">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="1" maxOccurs="unbounded" name="fields" type="fieldsType" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="fieldsType">
+        <xs:sequence>
+            <xs:element minOccurs="1" maxOccurs="unbounded" name="field" type="fieldType" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="fieldType">
+        <xs:all>
+            <xs:element name="required"/>
+            <xs:element name="pattern" minOccurs="0" type="xs:string"/>
+            <xs:element minOccurs="0" name="choose" type="selectType"/>
+            <xs:element minOccurs="0" name="required-if" type="requiredConditionType"/>
+            <xs:element minOccurs="0" name="validator-method" type="xs:string"/>
+            <xs:element minOccurs="1" name="invalid-message" type="xs:string"/>
+            <xs:element minOccurs="0" name="js-validation-name" type="xs:string"/>
+            <xs:element minOccurs="1" name="label" type="xs:string"/>
+            <xs:element minOccurs="0" name="tooltip" type="xs:string"/>
+        </xs:all>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="xs:string" use="required"/>
+        <xs:attribute name="payment_code" type="xs:string" use="required"/>
+        <xs:attribute name="class" type="xs:string"/>
+        <xs:attribute name="style" type="xs:string"/>
+    </xs:complexType>
+    <xs:complexType name="selectType">
+        <xs:sequence>
+            <xs:element name="option" minOccurs="1" maxOccurs="unbounded" type="selectOptionType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="selectOptionType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="value" type="xs:string">
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="requiredConditionType">
+        <xs:attribute name="field" type="xs:string" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="required"/>
+        <xs:attribute name="optional" type="xs:string"/>
+    </xs:complexType>
+</xs:schema>

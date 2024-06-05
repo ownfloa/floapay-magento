@@ -1,0 +1,250 @@
+<?xml version="1.0" ?>
+<!--
+	/**
+	* 2023 Floa Bank
+	*
+	* THE MIT LICENSE
+	*
+	* Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+	* documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+	* the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+	* to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+	* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+	* Software.
+	*
+	* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+	* WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+	* CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+	* IN THE SOFTWARE.
+	*
+	* @author    Floa Bank
+	* @copyright 2023 Floa Bank
+	* @license   https://opensource.org/licenses/MIT The MIT License
+	*/
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+	<system>
+	    <tab id="floa" translate="label" sortOrder="1000">
+            <label>FLOA Pay</label>
+        </tab>
+		<section id="floa" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Configuration</label>
+            <tab>floa</tab>
+			<resource>Floa_Payment::floa_config</resource>
+            <group id="delivery_methods" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Delivery Methods</label>
+                <field id="mapping" translate="label comment tooltip" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+					<label>Mapping</label>
+					<frontend_model>FLOA\Payment\Block\Adminhtml\System\Config\Form\Field\ShippingMethods</frontend_model>
+					<backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+				</field>
+            </group>
+        </section>
+		<section id="payment">
+			<group id="floa_payment" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+				<comment><![CDATA[<div class="floa-payment-logo"></div><div class="floa-payment-text">With the FLOA PAY solution, your customers can easily split their purchase into monthly payments while you receive funding upfront and in full.<br />Quick and easy to use, the FLOA PAY is a secure, paperless payment solution which works as simply as paying with a credit card at a point of sale.</div>]]></comment>
+				<fieldset_css>complex floa-section</fieldset_css>
+				<frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+				<field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Enabled</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				</field>
+				<field id="floa_merchant_login" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Merchant Login</label>
+					<config_path>payment/floa_payment/merchant_login</config_path>
+					<validate>required-entry</validate>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="floa_merchant_password" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Merchant Password</label>
+					<config_path>payment/floa_payment/merchant_password</config_path>
+					<validate>required-entry</validate>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="floa_merchant_id" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Merchant Code</label>
+					<config_path>payment/floa_payment/merchant_id</config_path>
+					<frontend_class>validate-number</frontend_class>
+					<validate>required-entry</validate>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="floa_env" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Environment</label>
+					<config_path>payment/floa_payment/env</config_path>
+					<source_model>FLOA\Payment\Model\Config\Source\Env</source_model>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="floa_country" translate="label" type="select" sortOrder="6" showInDefault="6" showInWebsite="1" showInStore="1">
+					<label>Country</label>
+					<config_path>payment/floa_payment/country</config_path>
+					<source_model>FLOA\Payment\Model\Config\Source\Country</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="floa_widget_product" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Widget Product</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+					<config_path>payment/floa_payment/widget_product</config_path>
+					<depends>
+						<field id="active">1</field>
+					</depends>
+				</field>
+				<field id="floa_widget_cart" translate="label" type="select" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Widget Cart</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+					<config_path>payment/floa_payment/widget_cart</config_path>
+					<depends>
+						<field id="active">1</field>
+					</depends>
+				</field>
+				<field id="floa_cgv_url" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>CGV URL</label>
+					<config_path>payment/floa_payment/cgv_url</config_path>
+					<depends>
+						<field id="active">1</field>
+					</depends>
+				</field>
+				<field id="debug" translate="label comment" type="select" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Debug</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+					<config_path>payment/floa_payment/debug</config_path>
+					<comment>Enable logging info and errors to help debug any issue with the module.</comment>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<field id="sort_order" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+					<label>Sort Order</label>
+					<frontend_class>validate-number</frontend_class>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+				</field>
+				<group id="floa_payment_methods" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+					<attribute type="expanded">1</attribute>
+					<comment><![CDATA[You can find more informations on website <a href="https://floapay.readme.io/reference" target="_blank">ReadMe FLOA Pay</a> about merchant configuration.]]></comment>
+					<depends>
+                        <field id="active">1</field>
+                    </depends>
+                    <label>Payment methods</label>
+					<group id="cb1xd" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+						<attribute type="expanded">1</attribute>
+					    <label>Payment in 1 deferred monthly payment</label>
+						<field id="cb1xd_active" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Enabled</label>
+							<config_path>payment/floa_payment/cb1xd_active</config_path>
+							<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						</field>
+						<field id="title" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Title</label>
+							<config_path>payment/cb1xd/title</config_path>
+							<validate>required-entry</validate>
+						</field>
+						<field id="cb1xd_merchant_site_id" translate="label" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Merchant Site ID</label>
+							<config_path>payment/floa_payment/cb1xd_merchant_site_id</config_path>
+							<frontend_class>validate-number</frontend_class>
+							<depends>
+								<field id="cb1xd_active">1</field>
+							</depends>
+						</field>
+						<field id="cb1xd_report_mode" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Report mode</label>
+							<config_path>payment/floa_payment/cb1xd_report_mode</config_path>
+							<source_model>FLOA\Payment\Model\Config\Source\Report</source_model>
+							<depends>
+								<field id="cb1xd_active">1</field>
+							</depends>
+						</field>
+						<field id="cb1xd_report_delay" translate="label" type="text" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Report delay</label>
+							<config_path>payment/floa_payment/cb1xd_report_delay</config_path>
+							 <depends>
+								<field id="cb1xd_active">1</field>
+								<field id="cb1xd_report_mode">2</field>
+							</depends>
+							<frontend_class>validate-number</frontend_class>
+						</field>
+					</group>
+					<group id="cb3x" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+						<attribute type="expanded">1</attribute>
+					    <label>Payment in 3 monthly installments</label>
+						<field id="cb3x_active" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Enabled</label>
+							<config_path>payment/floa_payment/cb3x_active</config_path>
+							<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						</field>
+						<field id="title" translate="label" type="text" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Title</label>
+							<config_path>payment/cb3x/title</config_path>
+							<validate>required-entry</validate>
+						</field>
+						<field id="cb3x_merchant_site_id" translate="label" type="text" sortOrder="23" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Merchant Site ID</label>
+							<config_path>payment/floa_payment/cb3x_merchant_site_id</config_path>
+							<frontend_class>validate-number</frontend_class>
+							<depends>
+								<field id="cb3x_active">1</field>
+							</depends>
+						</field>
+					</group>
+					<group id="cb4x" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+						<attribute type="expanded">1</attribute>
+					    <label>Payment in 4 monthly installments</label>
+						<field id="cb4x_active" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Enabled</label>
+							<config_path>payment/floa_payment/cb4x_active</config_path>
+							<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						</field>
+						<field id="title" translate="label" type="text" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Title</label>
+							<config_path>payment/cb4x/title</config_path>
+							<validate>required-entry</validate>
+						</field>
+						<field id="cb4x_merchant_site_id" translate="label" type="text" sortOrder="33" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Merchant Site ID</label>
+							<config_path>payment/floa_payment/cb4x_merchant_site_id</config_path>
+							<frontend_class>validate-number</frontend_class>
+							<depends>
+								<field id="cb4x_active">1</field>
+							</depends>
+						</field>
+					</group>
+					<group id="cb10x" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+						<attribute type="expanded">1</attribute>
+					    <label>Payment in 10 monthly installments</label>
+						<field id="cb10x_active" translate="label" type="select" sortOrder="41" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Enabled</label>
+							<config_path>payment/floa_payment/cb10x_active</config_path>
+							<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+						</field>
+						<field id="title" translate="label" type="text" sortOrder="42" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Title</label>
+							<config_path>payment/cb10x/title</config_path>
+							<validate>required-entry</validate>
+						</field>
+						<field id="cb10x_merchant_site_id" translate="label" type="text" sortOrder="43" showInDefault="1" showInWebsite="1" showInStore="1">
+							<label>Merchant Site ID</label>
+							<config_path>payment/floa_payment/cb10x_merchant_site_id</config_path>
+							<frontend_class>validate-number</frontend_class>
+							<depends>
+								<field id="cb10x_active">1</field>
+							</depends>
+						</field>
+					</group>
+                </group>
+			</group>
+		</section>
+	</system>
+</config>
