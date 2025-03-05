@@ -36,6 +36,7 @@ use Magento\Framework\Stdlib\StringUtils;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ScopeInterface;
+use FLOA\Payment\Helpers\FloaTools;
 
 class Widget extends View
 {
@@ -289,18 +290,19 @@ class Widget extends View
         $this->offers = [];
 
         $offersToSchedule = [3, 4, 1];
-        foreach ($offersToSchedule as $oneOffer) {
-            try {
+        try {
+            foreach ($offersToSchedule as $oneOffer) {
+                $method = 'cb' . $oneOffer . 'x' . ($oneOffer == 1 ? 'd' : '');
                 $this->getScheduleOffer(
-                    'cb' . $oneOffer . 'x' . ($oneOffer == 1 ? 'd' : ''),
+                    $method ,
                     $oneOffer,
                     $price,
                     $this->offers
                 );
-            } catch (\Exception $ex) {
-                $logger = new FloaPayLogger();
-                $logger->info("Widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
             }
+        } catch (\Exception $ex) {
+            $logger = new FloaPayLogger();
+            $logger->info("Widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
         }
 
         return $this->offers;

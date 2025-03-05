@@ -188,11 +188,11 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
                                             && $this->_scopeConfig->getValue(FloaScopeConfigInterface::IS_ACTIVE_PATH, $storeScope, $storeId);
         $this->merchantSiteId = $merchantSiteId ? $merchantSiteId : $this->_scopeConfig->getValue('payment/floa_payment/' . $this->method . '_merchant_site_id', $storeScope, $storeId);
         $this->authorization = base64_encode($this->merchantLogin . ':' . $this->merchantPassword);
-        $this->contextPaymentUri = $this->env == 'INTE' ? self::PAYMENT_GATEWAY_INTE : self::PAYMENT_GATEWAY_PROD;
-        $this->contextEligibilityUri = $this->env == 'INTE' ? self::ELIGIBILITY_INTE : self::ELIGIBILITY_PROD;
-        $this->contextServicesUri = $this->env == 'INTE' ? self::SERVICES_INTE : self::SERVICES_PROD;
+        $this->contextPaymentUri = $this->env != 'INTE' ? self::PAYMENT_GATEWAY_PROD : self::PAYMENT_GATEWAY_INTE;
+        $this->contextEligibilityUri = $this->env != 'INTE' ? self::ELIGIBILITY_PROD : self::ELIGIBILITY_INTE;
+        $this->contextServicesUri = $this->env != 'INTE' ? self::SERVICES_PROD : self::SERVICES_INTE;
         $this->defaultPaymentOptionRef = isset(self::paymentMethodsAvailable()[$this->method]) ? self::paymentMethodsAvailable()[$this->method]['paymentOptionRef'] : false;
-        $this->timeoutMs = 30000;
+        $this->timeoutMs = 3000;
         $this->contextCheck = $this->checkConfig();
         $this->logger = null;
 
@@ -269,7 +269,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     private function getSecurityToken()
     {
         if (!empty($this->token) && $this->tokenEnv == $this->env) {
-            if ((time() - $this->tokenUpdateDate) < 86400) {
+            if ((time() - $this->tokenUpdateDate) < 3600) {
                 return ['state' => true, 'token' => $this->token];
             }
         }
@@ -716,6 +716,12 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
                 'authToken: ' . $this->token,
             ]);
             $response = $this->curlExec($ch);
+            if (curl_errno($ch)) {
+                $error_code = curl_errno($ch);
+                if ($error_code == CURLE_OPERATION_TIMEOUTED) {
+                    throw new \Exception('Error timeout CURL - we do not call any other payments options');
+                }
+            }
             $header_size = $this->curlgetInfo($ch, CURLINFO_HEADER_SIZE);
             $body = substr($response, $header_size);
             $httpcode = $this->curlgetInfo($ch, CURLINFO_HTTP_CODE);
@@ -739,7 +745,10 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
                         break;
                 }
                 $this->addLog('Error - ' . $message);
-
+                $this->setCache(1800,  '', 'paymentoption', [
+                    'state' => false,
+                    'message' => 'Timeout Error',
+                ]);
                 return [
                     'state' => false,
                     'message' => $message,
@@ -747,7 +756,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
             }
             $responseJson = json_decode($body);
             $this->addLog('Setting payment options in cache');
-            $this->setCache('', 'paymentoption', $responseJson, 'paymentoption' . $this->method);
+            $this->setCache(86400, '', 'paymentoption', $responseJson, 'paymentoption' . $this->method);
         }
 
         if (isset($responseJson->paymentOptions)) {
@@ -784,21 +793,24 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $amount = $floaTools->convertToInt($amount);
 
         $cacheType = ($inCheckout === true ? 'checkout' : 'schedule') . $this->method;
+        $cacheTimeout = 900;
 
         $this->cacheEnabled = (bool) $this->deploymentConfig->get('cache_types/floaoffers');
         if ($inCheckout === false) {
-            $cacheResponse = $this->getCache($amount, $cacheType);
-            if ($cacheResponse !== false) {
-                $this->addLog("Estimated {$cacheType} - cache found for $amount - ($this->method)", false);
-
-                return [
-                    'state' => true,
-                    'amount' => $cacheResponse->amount,
-                    'schedules' => $cacheResponse->schedules,
-                    'fees' => ($cacheResponse->amount - $amount),
-                ];
-            }
+            $cacheTimeout = 1800;
         }
+        $cacheResponse = $this->getCache($amount, $cacheType);
+        if ($cacheResponse !== false) {
+            $this->addLog("Estimated {$cacheType} - cache found for $amount - ($this->method)", false);
+
+            return [
+                'state' => true,
+                'amount' => $cacheResponse->amount,
+                'schedules' => $cacheResponse->schedules,
+                'fees' => ($cacheResponse->amount - $amount),
+            ];
+        }
+
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
@@ -824,6 +836,15 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $this->curlSetopt($ch, CURLOPT_POSTFIELDS, json_encode($content));
         $response = $this->curlExec($ch);
         $header_size = $this->curlgetInfo($ch, CURLINFO_HEADER_SIZE);
+        $curlErrorCode = curl_errno($ch);
+
+        $error_code = curl_errno($ch);
+        if ((int) $error_code > 0) {
+            if ($error_code == CURLE_OPERATION_TIMEOUTED) {
+                throw new \Exception('Error timeout CURL - we do not call any other offers');
+            }
+        }
+
         $body = substr($response, $header_size);
         $httpcode = $this->curlgetInfo($ch, CURLINFO_HTTP_CODE);
 
@@ -835,7 +856,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         if ($httpcode == 200) {
             $responseJson = json_decode($body);
             if (isset($responseJson->code) && $responseJson->code == 0) {
-                $this->setCache($amount, $cacheType, $responseJson);
+                $this->setCache($cacheType === 'checkout' ? 3600 : 86400, $amount, $cacheType, $responseJson);
 
                 return [
                     'state' => true,
@@ -848,6 +869,11 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
                     'state' => false,
                     'message' => '[ESTIMATED SCHEDULE] ' . (isset($responseJson->message) ? $responseJson->message : 'No more information.'),
                 ];
+
+                $this->setCache($cacheTimeout,  $amount, $cacheType, [
+                    'state' => false,
+                    'message' => $message,
+                ]);
             }
         } else {
             $message = '';
@@ -869,6 +895,11 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
                     break;
             }
             $this->addLog('Error - ' . $message);
+
+            $this->setCache($cacheTimeout,  $amount, $cacheType, [
+                'state' => false,
+                'message' => $message,
+            ]);
 
             return [
                 'state' => false,
@@ -1130,6 +1161,10 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         if ($this->cacheEnabled === false) {
             return false;
         }
+        $cachedApiError = $this->cache->load('apiError');
+        if (empty($cachedApiError) === false) {
+            return [];
+        }
         if ($cacheKey === null) {
             $cacheKey = \FLOA\Payment\Model\Cache\Offers::TYPE_IDENTIFIER . $type . $amount;
         }
@@ -1149,7 +1184,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
      *
      * @return mixed
      */
-    public function setCache($amount, $type, $cacheData, $cacheKey = null)
+    public function setCache($cacheTime, $amount, $type, $cacheData, $cacheKey = null)
     {
         if ($this->cacheEnabled === false) {
             return false;
@@ -1158,7 +1193,6 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
             $cacheKey = \FLOA\Payment\Model\Cache\Offers::TYPE_IDENTIFIER . $type . $amount;
         }
         $cacheTag = \FLOA\Payment\Model\Cache\Offers::CACHE_TAG;
-        $cacheTime = $type === 'checkout' ? 3600 : 86400;
 
         $storeData = $this->cache->save(
             $this->serializer->serialize($cacheData),

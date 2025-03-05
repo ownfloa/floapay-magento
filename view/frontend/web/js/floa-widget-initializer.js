@@ -112,7 +112,9 @@ define([
                         window.floapay.offers = response.messages.floapay.offers;
                         window.floapay.selectedOffer = response.messages.floapay.selectedOffer;
                         let widgetContainer = document.querySelector('.floa-widget');
-                        widgetContainer.outerHTML = '<div data-floa-offers></div>';
+                        if (widgetContainer && widgetContainer.outerHTML) {
+                            widgetContainer.outerHTML = '<div data-floa-offers class="floa-widget"></div>';
+                        }
                         setTimeout(function () {
                             window.initFloaWidget();
                             window.initWidgetMagento();

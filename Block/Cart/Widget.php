@@ -130,22 +130,20 @@ class Widget extends \FLOA\Payment\Block\Product\Widget
     {
         $price = $this->checkoutSession->getQuote()->getGrandTotal();
         $this->offers = [];
-
         $offersToSchedule = [3, 4, 1];
-        foreach ($offersToSchedule as $oneOffer) {
-            try {
+        try {
+            foreach ($offersToSchedule as $oneOffer) {
                 $this->getScheduleOffer(
                     'cb' . $oneOffer . 'x' . ($oneOffer == 1 ? 'd' : ''),
                     $oneOffer,
                     $price,
                     $this->offers
                 );
-            } catch (\Exception $ex) {
-                $logger = new FloaPayLogger();
-                $logger->info("Widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
             }
+        } catch (\Exception $ex) {
+            $logger = new FloaPayLogger();
+            $logger->info("Widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
         }
-
         return $this->offers;
     }
 }

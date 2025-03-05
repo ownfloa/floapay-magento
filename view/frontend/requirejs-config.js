@@ -26,8 +26,6 @@ var config = {
             floaFormHelper: 'FLOA_Payment/js/floa-form-helper',
             floaWidgetInitializer: 'FLOA_Payment/js/floa-widget-initializer',
             floaProduct: 'FLOA_Payment/js/view/product/product',
-            intlTelInput: 'FLOA_Payment/js/view/intlTelInput/intlTelInput',
-            intlTelInputUtils: 'FLOA_Payment/js/view/intlTelInput/utils'
         }
     }
 };

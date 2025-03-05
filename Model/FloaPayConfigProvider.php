@@ -197,44 +197,55 @@ class FloaPayConfigProvider implements ConfigProviderInterface
         $isFirstPlan = true;
         $floaTools = new FloaTools();
         $amount = $this->checkoutSession->getQuote()->getGrandTotal();
-        foreach ($this->floaPayManagement->paymentMethodsAvailable() as $onePaymentMethod => $contentPayment) {
-            $methodPayment = $onePaymentMethod;
-            $cacheResponse = $this->floaPayManagement->getCache(
-                $floaTools->convertToInt($amount),
-                'checkout' . $onePaymentMethod
-            );
-            if ($cacheResponse !== false) {
-                $estimatedPlan = [
-                    'state' => true,
-                    'amount' => $cacheResponse->amount,
-                    'schedules' => $cacheResponse->schedules,
-                    'fees' => $cacheResponse->amount - $floaTools->convertToInt($amount),
-                ];
-                $this->floaPayManagement->addLog(
-                    "Estimated checkout{$onePaymentMethod} - cache found for {$floaTools->convertToInt($amount)} - ($onePaymentMethod)",
-                    false
+        try {
+            foreach ($this->floaPayManagement->paymentMethodsAvailable() as $onePaymentMethod => $contentPayment) {
+                $methodPayment = $onePaymentMethod;
+                $cacheResponse = $this->floaPayManagement->getCache(
+                    $floaTools->convertToInt($amount),
+                    'checkout' . $onePaymentMethod
                 );
-                $this->buildEstimatedPlan($estimatedPlan, $floaTools, $onePaymentMethod, $plans, $isFirstPlan);
-            } else {
-                $contextCheck = $this->floaPayManagement->initialize($methodPayment, $this->_storeScope, $this->_store_id);
-                if ($contextCheck['state'] == true) {
-                    $reportDelayInDays = false;
-                    if ($methodPayment == 'cb1xd') {
-                        $reportMode = $this->_scopeConfig->getValue('payment/floa_payment/cb1xd_report_mode', $this->_storeScope, $this->_store_id);
-                        $reportDelay = $this->_scopeConfig->getValue('payment/floa_payment/cb1xd_report_delay', $this->_storeScope, $this->_store_id);
-                        $reportDelayInDays = ($reportMode == 1) ? 30 : ($reportMode == 2 ? $reportDelay : false);
-                    }
-                    $estimatedPlan = $this->floaPayManagement->getEstimatedSchedule(
-                        $amount,
-                        $reportDelayInDays,
-                        true
+                if ($cacheResponse !== false) {
+                    $estimatedPlan = [
+                        'state' => true,
+                        'amount' => $cacheResponse->amount,
+                        'schedules' => $cacheResponse->schedules,
+                        'fees' => $cacheResponse->amount - $floaTools->convertToInt($amount),
+                    ];
+                    $this->floaPayManagement->addLog(
+                        "Estimated checkout{$onePaymentMethod} - cache found for {$floaTools->convertToInt($amount)} - ($onePaymentMethod)",
+                        false
                     );
                     $this->buildEstimatedPlan($estimatedPlan, $floaTools, $onePaymentMethod, $plans, $isFirstPlan);
                 } else {
-                    $plans[$onePaymentMethod] = null;
+                    $contextCheck = $this->floaPayManagement->initialize($methodPayment, $this->_storeScope, $this->_store_id);
+                    if ($contextCheck['state'] == true) {
+                        $reportDelayInDays = false;
+                        if ($methodPayment == 'cb1xd') {
+                            $reportMode = $this->_scopeConfig->getValue('payment/floa_payment/cb1xd_report_mode', $this->_storeScope, $this->_store_id);
+                            $reportDelay = $this->_scopeConfig->getValue('payment/floa_payment/cb1xd_report_delay', $this->_storeScope, $this->_store_id);
+                            $reportDelayInDays = ($reportMode == 1) ? 30 : ($reportMode == 2 ? $reportDelay : false);
+                        }
+                        $estimatedPlan = $this->floaPayManagement->getEstimatedSchedule(
+                            $amount,
+                            $reportDelayInDays,
+                            true
+                        );
+                        $this->buildEstimatedPlan($estimatedPlan, $floaTools, $onePaymentMethod, $plans, $isFirstPlan);
+                    } else {
+                        $plans[$onePaymentMethod] = null;
+                    }
                 }
             }
+        } catch (\Exception $ex) {
+            $this->floaPayManagement->setCache(
+                1800,
+                0,
+                null,
+                null,
+                'apiError'
+            );
         }
+
 
         return $plans;
     }

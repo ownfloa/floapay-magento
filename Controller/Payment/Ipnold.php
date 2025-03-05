@@ -62,15 +62,23 @@ class Ipnold extends \Magento\Framework\App\Action\Action
 
     /**
      * Execute IPN Old
+     *
+     * @return ResultInterface
      */
     public function execute()
     {
         $post = $this->getRequest()->getPostValue();
         $return = $this->paymentValidation->validate($post);
+        
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $jsonResultFactory = $objectManager->get(\Magento\Framework\Controller\Result\JsonFactory::class);
+        $result = $jsonResultFactory->create();
+
+        $responseCode = 200;
         if ($return['state'] != true) {
-            header('HTTP/1.1 500 Internal Server Error');
-            return 'Request executed with errors';
+            $responseCode = 500;
         }
-        return 'Request executed';
+        $result->setData(['response_code' => $responseCode, 'message' => $return['message']]);
+        return $result;
     }
 }
