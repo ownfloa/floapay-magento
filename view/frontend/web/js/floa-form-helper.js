@@ -26,8 +26,9 @@ define([
     'mage/url',
     'mage/translate',
     'Magento_Checkout/js/checkout-data',
-    'Magento_Checkout/js/action/select-payment-method'
-], function ($, urlBuilder, $t, checkoutData, selectPaymentMethodAction) {
+    'Magento_Checkout/js/action/select-payment-method',
+    'Magento_Checkout/js/model/totals',
+], function ($, urlBuilder, $t, checkoutData, selectPaymentMethodAction, totals) {
     'use strict';
 
     return function (code, country) {
@@ -206,6 +207,22 @@ define([
             },
             getAllPlans: function() {
                 var plans = [];
+                var previousTotal = window.checkoutConfig.payment.floa.total;
+                var currentTotal = parseInt((totals.totals().grand_total * 100).toFixed(0));
+                window.floaLog(`currentTotal: ${currentTotal}`)
+                window.floaLog(`previousTotal: ${previousTotal}`)
+                if (currentTotal !== previousTotal) {
+                    $.ajax({
+                        url: urlBuilder.build('floa/eligibility/plans') + '?' + Date.now(),
+                        type: 'POST',
+                        async: false,
+                        dataType: 'json'
+                    }).done(function(data) {
+                        window.checkoutConfig.payment.floa.plans = data;
+                    });
+                    window.checkoutConfig.payment.floa.total = currentTotal;
+                }
+                window.floaLog(window.checkoutConfig.payment.floa.plans);
                 var selectedMethod = window.getSelectedMethodCheckout();
                 Object.keys(window.checkoutConfig.payment.floa.plans).forEach(function(key) {
                     var planIn = window.checkoutConfig.payment.floa.plans[key];
@@ -229,6 +246,7 @@ define([
                 return plan.schedules.length ? plan.schedules : false; 
             },
             handleEligibilityPlans: function () {
+                window.floaLog(window.checkoutConfig.payment.floa.plans);
                 window.floaLog(_code);
                 if (typeof window.checkoutConfig.payment.floa.plans[_code] === 'undefined') {
                     return null;

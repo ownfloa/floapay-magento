@@ -94,6 +94,9 @@ class FloaPayConfigProvider implements ConfigProviderInterface
     /** @var Resolver */
     protected $resolver;
 
+    /** @var float */
+    protected $currentTotal;
+
     /**
      * Construct
      *
@@ -125,6 +128,11 @@ class FloaPayConfigProvider implements ConfigProviderInterface
         $this->formConfig = $formConfig;
         $this->assetRepository = $assetsRepository;
         $this->resolver = $resolver;
+        $this->_storeScope = ScopeInterface::SCOPE_STORE;
+        $this->_storeManager = ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class);
+        $this->_scopeConfig = ObjectManager::getInstance()->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+        $this->_store_id = $this->_storeManager->getStore()->getId();
+        $this->currentTotal = $this->checkoutSession->getQuote()->getGrandTotal();
     }
 
     /**
@@ -134,10 +142,6 @@ class FloaPayConfigProvider implements ConfigProviderInterface
      */
     public function getConfig()
     {
-        $this->_storeScope = ScopeInterface::SCOPE_STORE;
-        $this->_storeManager = ObjectManager::getInstance()->get(\Magento\Store\Model\StoreManagerInterface::class);
-        $this->_scopeConfig = ObjectManager::getInstance()->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $this->_store_id = $this->_storeManager->getStore()->getId();
         $countryCode = $this->_scopeConfig->getValue(FloaScopeConfigInterface::COUNTRY_CODE_PATH, $this->_storeScope, $this->_store_id);
         $defType = $this->_scopeConfig->getValue(FloaScopeConfigInterface::DEF_TYPE_PATH, $this->_storeScope, $this->_store_id);
         $defDelay = $this->_scopeConfig->getValue(FloaScopeConfigInterface::DEF_DELAY_PATH, $this->_storeScope, $this->_store_id);
@@ -157,6 +161,7 @@ class FloaPayConfigProvider implements ConfigProviderInterface
                     'minDefDate' => $minDefDate,
                     'maxDefDate' => $maxDefDate,
                     'maxBirthDate' => $maxBirthDate,
+                    'total' => (new FloaTools())->convertToInt($this->currentTotal),
                     'formValidation' => $this->formConfig->getJsFormCustomValidations($countryCode),
                     'cgv_link' => $this->getCgvLink($countryCode),
                     'plans' => $this->getAvailablePlans(),
@@ -196,23 +201,25 @@ class FloaPayConfigProvider implements ConfigProviderInterface
         $plans = [];
         $isFirstPlan = true;
         $floaTools = new FloaTools();
-        $amount = $this->checkoutSession->getQuote()->getGrandTotal();
         try {
             foreach ($this->floaPayManagement->paymentMethodsAvailable() as $onePaymentMethod => $contentPayment) {
                 $methodPayment = $onePaymentMethod;
                 $cacheResponse = $this->floaPayManagement->getCache(
-                    $floaTools->convertToInt($amount),
+                    $floaTools->convertToInt($this->currentTotal),
                     'checkout' . $onePaymentMethod
                 );
                 if ($cacheResponse !== false) {
+                    if (isset($cacheResponse->amount) === false || isset($cacheResponse->schedules) == false) {
+                        continue;
+                    }
                     $estimatedPlan = [
                         'state' => true,
                         'amount' => $cacheResponse->amount,
                         'schedules' => $cacheResponse->schedules,
-                        'fees' => $cacheResponse->amount - $floaTools->convertToInt($amount),
+                        'fees' => $cacheResponse->amount - $floaTools->convertToInt($this->currentTotal),
                     ];
                     $this->floaPayManagement->addLog(
-                        "Estimated checkout{$onePaymentMethod} - cache found for {$floaTools->convertToInt($amount)} - ($onePaymentMethod)",
+                        "Estimated checkout{$onePaymentMethod} - cache found for {$this->currentTotal} - ($onePaymentMethod)",
                         false
                     );
                     $this->buildEstimatedPlan($estimatedPlan, $floaTools, $onePaymentMethod, $plans, $isFirstPlan);
@@ -226,7 +233,7 @@ class FloaPayConfigProvider implements ConfigProviderInterface
                             $reportDelayInDays = ($reportMode == 1) ? 30 : ($reportMode == 2 ? $reportDelay : false);
                         }
                         $estimatedPlan = $this->floaPayManagement->getEstimatedSchedule(
-                            $amount,
+                            $this->currentTotal,
                             $reportDelayInDays,
                             true
                         );
@@ -237,13 +244,8 @@ class FloaPayConfigProvider implements ConfigProviderInterface
                 }
             }
         } catch (\Exception $ex) {
-            $this->floaPayManagement->setCache(
-                1800,
-                0,
-                null,
-                null,
-                'apiError'
-            );
+            (new FloaPayLogger())->info('FloaPayConfigProvider - getAvailablePlans - ' . $ex->getMessage());
+            (new FloaPayLogger())->info('FloaPayConfigProvider - getAvailablePlans - ' . $ex->getTraceAsString());
         }
 
 

@@ -28,25 +28,37 @@ define([
 
         $(document).ready(function () {
             let widgetContainer = document.querySelector('.floa-widget');
-            if (widgetContainer === null && floapay.offers.length && floapay.offers.length > 0) {
-                setTimeout(window.initWidgetMagento, 150);
-            }
 
             if (window.floapay.type === 'product') {
+                if (widgetContainer === null) {
+                    setTimeout(window.floaLaunchAjaxRefresh, 150);
+                }
                 $('#qty').on('change', floaLaunchAjaxRefresh);
-                $('.product-info-price [data-price-amount]').on('DOMSubtreeModified', function() {
-                    floaLaunchAjaxRefresh();
+                $(document).on('floa:product:change', function(event, data) {
+                    var finalPrice = data.finalPrice.amount;
+                    $('.product-info-price [data-price-amount]').attr('data-price-amount', finalPrice)
+                    floaLaunchAjaxRefresh(finalPrice);
                 });
+            } else {
+                setTimeout(window.initWidgetMagento, 150);
             }
         });
 
-        function floaLaunchAjaxRefresh()
+        function floaLaunchAjaxRefresh(finalPrice = null)
         {
-            let qty = $('#qty').val();
-            let price = $('.product-info-price [data-price-amount] .price').text();
+            window.floapay.tries = 0;
+            let qty = 1;
+            if ($('#qty') && $('#qty').length) {
+                qty = $('#qty').val();
+            }
+            let price = finalPrice;
+            if (price == null || typeof price === 'object') {
+                price = $('.product-info-price [data-price-amount]').attr('data-price-amount');
+            }
+            finalPrice = price * qty;
             var ajaxData = {
                 ajax: true,
-                price: Number(price.replace(',', '.').replace(/[^0-9.-]+/g,"")) * qty
+                price: finalPrice
             };
             launchFloaAjax(ajaxData);
         }
@@ -91,6 +103,7 @@ define([
         }
         window.initWidgetMagento = initWidgetMagento;
         window.initFloaWidgetWidth = initFloaWidgetWidth;
+        window.floaLaunchAjaxRefresh = floaLaunchAjaxRefresh;
 
         function initFloaWidgetWidth(floaWidget) {
             floaWidget.removeClass();

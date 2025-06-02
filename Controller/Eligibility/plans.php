@@ -123,7 +123,7 @@ class Plans extends Action implements ActionInterface
      */
     public function execute()
     {
-        $plans = $this->floaPayConfig->getAvailablePlans();
+        $plans = $this->floaPayconfig->getAvailablePlans();
 
         $resultJson = $this->resultJsonFactory->create();
 

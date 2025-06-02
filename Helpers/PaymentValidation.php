@@ -25,6 +25,7 @@
 namespace FLOA\Payment\Helpers;
 
 use FLOA\Payment\Model\FloaPayManagement;
+use FLOA\Payment\Model\FloaPayLogger;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DB\Transaction;
@@ -89,6 +90,9 @@ class PaymentValidation
     /** @var \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface */
     protected $transactionBuilder;
 
+    /** @var mixed*/
+    protected $result = [];
+
     /**
      * __construct
      *
@@ -152,6 +156,7 @@ class PaymentValidation
         $returnCode = isset($data['returnCode']) ? $data['returnCode'] : false;
 
         if ($orderRef === false || $code === null || $eligibilityToken === false) {
+            $this->logError(' Error - missing orderRef | code | eligibilityToken in data');
             return $this->_paymentValidation(false, __('Bad request'));
         }
 
@@ -159,16 +164,19 @@ class PaymentValidation
         try {
             $quote = $this->quoteRepository->get($quoteId);
         } catch (NoSuchEntityException $e) {
+            $this->logError(' Error - No quote with Id' . $quoteId);
             return $this->_paymentValidation(false, $errorMessage);
         }
         $quotePayment = $quote->getPayment();
         if (!$quotePayment) {
+            $this->logError(' Error - No payment found for the quote with Id' . $quoteId);
             return $this->_paymentValidation(false, $errorMessage);
         }
         $floaInformations = $quotePayment->getAdditionalInformation();
         try {
             $order = $this->orderRepository->get($floaInformations['FloaOrderId']);
         } catch (NoSuchEntityException $e) {
+            $this->logError(' Error - No order found for the quote with Id' . $quoteId);
             return $this->_paymentValidation(false, $errorMessage);
         }
         if (0 == $order->getInvoiceCollection()->count() && in_array($order->getState(), [Order::STATE_NEW, Order::STATE_PENDING_PAYMENT])) {
@@ -184,8 +192,10 @@ class PaymentValidation
                 $errorMessage
             );
         } elseif ($order->getState() == Order::STATE_CANCELED) {
+            $this->logError(' Error - Order is cancelled for the quote with Id' . $quoteId);
             return $this->_paymentValidation(false, __('Order is canceled'));
         } elseif (in_array($order->getState(), [Order::STATE_PROCESSING, Order::STATE_COMPLETE, Order::STATE_HOLDED, Order::STATE_PAYMENT_REVIEW])) {
+            $this->logError(' Warning - Order is already done for the quote with Id' . $quoteId);
             $this->checkoutSession->setLastSuccessQuoteId($order->getQuoteId());
             $this->orderRepository->save($order);
 
@@ -222,12 +232,19 @@ class PaymentValidation
     ) {
         if ($floaInformations['FloaSecureKey'] == $eligibilityToken) {
             $this->floaPayManagement->initialize($code, $this->storeScope, $this->store_id);
+            $schedules = [];
             if ($quotePayment->getMethod() == 'cb10x') {
                 $result = $this->floaPayManagement->getPaymentResultFromPaymentSchedules($quotePayment->getAdditionalInformation('FloaOrderRef'));
+                $schedules = isset($result['schedules']) ? $result['schedules'] : [];
             } else {
                 $result = $this->floaPayManagement->getPaymentResult($quotePayment->getAdditionalInformation('FloaSessionId'));
+                $schedules = $this->floaPayManagement->getPaymentSchedules($quotePayment->getAdditionalInformation('FloaOrderRef'));
             }
-            $schedules = $this->floaPayManagement->getPaymentSchedules($quotePayment->getAdditionalInformation('FloaOrderRef'));
+            $this->result = [
+                'floaInformations' => $floaInformations,
+                'result' => $result,
+                'schedules' => $schedules,
+            ];
             $payment = $order->getPayment();
             $floaTools = new FloaTools();
             $totalDueEligibility = $floaTools->convertToInt($order->getTotalDue()) + $quotePayment->getAdditionalInformation('FloaFeesAmount');
@@ -286,11 +303,13 @@ class PaymentValidation
 
                         return $this->_paymentValidation(true, '', 'checkout/onepage/success');
                     } else {
+                        $this->restoreCheckoutQuote($quote, $order);
+
                         return $this->_paymentValidation(false, $errorMessage);
                     }
                 } elseif (in_array($result['datas']['paymentResultCode'], [1, 2])) {
                     $this->_addOrderComment($order, __('Order payment refused'), Order::STATE_CANCELED);
-                    $this->orderManagement->cancel($order->getId());
+                    $this->restoreCheckoutQuote($quote, $order);
 
                     return $this->_paymentValidation(false, $refusedMessage);
                 } else {
@@ -302,14 +321,14 @@ class PaymentValidation
                         ->setLastOrderId($order->getId())
                         ->setLastRealOrderId($order->getIncrementId());
                     $this->_addOrderComment($order, __('Technical error on Floa Bank payment validation'), Order::STATE_CANCELED);
-                    $this->orderManagement->cancel($order->getId());
+                    $this->restoreCheckoutQuote($quote, $order);
 
                     return $this->_paymentValidation(false, $errorMessage);
                 }
             } else {
+                $this->restoreCheckoutQuote($quote, $order);
                 if (in_array($returnCode, [1, 2]) && $quotePayment->getMethod() == 'cb10x') {
                     $this->_addOrderComment($order, __('Order payment refused'), Order::STATE_CANCELED);
-                    $this->orderManagement->cancel($order->getId());
 
                     return $this->_paymentValidation(false, $refusedMessage);
                 } else {
@@ -317,6 +336,9 @@ class PaymentValidation
                 }
             }
         } else {
+            $this->logError(' Error - token mismatch');
+            $this->restoreCheckoutQuote($quote, $order);
+
             return $this->_paymentValidation(false, $errorMessage);
         }
     }
@@ -332,6 +354,12 @@ class PaymentValidation
      */
     private function _paymentValidation($state = false, $message = '', $returnPath = 'checkout/cart')
     {
+        if ($state === false) {
+            $this->logError(' Error - ' .$message);
+            if ($this->result !== []) {
+                $this->logError(' More informations: ' . json_encode($this->result));
+            }
+        }
         return [
             'state' => $state,
             'message' => $message,
@@ -355,5 +383,30 @@ class PaymentValidation
         } else {
             $order->addStatusHistoryComment($comment, $state);
         }
+    }
+
+    /**
+     * Log error message
+     * 
+     * @var string $message
+     * 
+     * @return void
+     */
+    private function logError($message)
+    {
+        (new FloaPayLogger())->info('[paymentValidation] - ' . $message);
+    }
+
+    private function restoreCheckoutQuote($quote, $order)
+    {
+        $quote->setIsActive(true);
+        $this->checkoutSession->restoreQuote();
+        $this->quoteRepository->save($quote);
+        $this->checkoutSession->setLastQuoteId($quote->getId())
+            ->setLastSuccessQuoteId($quote->getId())
+            ->setLastOrderId($order->getId())
+            ->setLastRealOrderId($order->getIncrementId());
+        $this->_addOrderComment($order, __('Technical error on Floa Bank payment validation'), Order::STATE_CANCELED);
+        $this->orderManagement->cancel($order->getId());
     }
 }

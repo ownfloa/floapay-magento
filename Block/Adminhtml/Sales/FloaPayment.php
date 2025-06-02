@@ -168,10 +168,10 @@ class FloaPayment extends Template
         $this->transactionRepository = $transactionRepository;
         $this->scopeConfig           = $scopeConfig;
         $this->storeScope            = ScopeInterface::SCOPE_STORE;
-        $this->store_id              = $storeManagerInterface->getStore()->getId();
         $this->floaPayManagement     = $floaPayManagement;
         $this->serializer            = $serializer;
         $this->orderPayment          = $this->getOrder()->getPayment();
+        $this->store_id              = $this->getOrder()->getStore()->getId();
         $this->method                = $this->orderPayment->getMethod();
         $this->totalAmount           = isset($this->orderPayment->getAdditionalInformation()['FloaTotalAmount'])
             ? (int) ($this->orderPayment->getAdditionalInformation()['FloaTotalAmount']-$this->orderPayment->getAdditionalInformation()['FloaFeesAmount']) : 0;

@@ -27,5 +27,15 @@ var config = {
             floaWidgetInitializer: 'FLOA_Payment/js/floa-widget-initializer',
             floaProduct: 'FLOA_Payment/js/view/product/product',
         }
+    },
+    config: {
+        mixins: {
+            'Magento_Checkout/js/view/shipping': {
+                'FLOA_Payment/js/floa-shipping': true
+            },
+            'Magento_Swatches/js/swatch-renderer': {
+                'FLOA_Payment/js/floa-swatch-renderer': true
+            }
+        }
     }
 };

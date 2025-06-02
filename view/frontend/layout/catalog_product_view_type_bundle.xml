@@ -22,11 +22,10 @@
 <body>
     <attribute name="class" value="page-product-bundle"/>
     <referenceBlock name="bundle.summary">
-        <block class="FLOA\Payment\Block\Product\Widget" name="afterprice.floa.widget"
+        <block class="FLOA\Payment\Block\Product\Widget" name="afterprice.floa.widget" cacheable="false"
                as="afterPriceWidgetFloa" template="FLOA_Payment::product/widget.phtml" before="product.info.addto.bundle">
             <arguments>
                 <argument name="location" xsi:type="string">product_price_after</argument>
-                <argument name="cache_lifetime" xsi:type="number">86400</argument>
             </arguments>
         </block>
     </referenceBlock>

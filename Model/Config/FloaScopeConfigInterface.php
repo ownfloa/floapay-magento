@@ -43,4 +43,7 @@ interface FloaScopeConfigInterface
     public const MERCHANT_ID = 'payment/floa_payment/merchant_id';
     public const MERCHANT_LOGIN = 'payment/floa_payment/merchant_login';
     public const MERCHANT_PWD = 'payment/floa_payment/merchant_password';
+    public const TIMEOUT_SCHEDULES = 'payment/floa_payment/timeout_schedules';
+    public const TIMEOUT_PAYMENTS = 'payment/floa_payment/timeout_payments';
+    public const TIMEOUT_CONNECT = 'payment/floa_payment/timeout_connect';
 }

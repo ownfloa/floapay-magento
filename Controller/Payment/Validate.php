@@ -123,7 +123,10 @@ class Validate extends \Magento\Framework\App\Action\Action implements CsrfAware
                 $this->messageManager->addError($return['message']);
             }
         }
-        return $this->_redirect($redirectPath);
+
+        $resultRedirect = $this->resultRedirectFactory->create()->setPath($redirectPath);
+
+        return $resultRedirect;
     }
 
     /**

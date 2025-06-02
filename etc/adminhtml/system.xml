@@ -131,6 +131,34 @@
                         <field id="active">1</field>
                     </depends>
 				</field>
+				<group id="floa_timeouts" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Timeouts</label>
+					<fieldset_css>requests-timeout</fieldset_css>
+					<field id="floa_timeout_schedules" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+						<label>Offers requests timeout</label>
+						<config_path>payment/floa_payment/timeout_schedules</config_path>
+						<comment>Configure requests timeout for payments (request to create and check payments - CURLOPT_TIMEOUT_MS). Default: 4000ms</comment>
+						<depends>
+							<field id="active">1</field>
+						</depends>
+					</field>
+					<field id="floa_timeout_payment" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+						<label>Payment requests timeout</label>
+						<config_path>payment/floa_payment/timeout_payments</config_path>
+						<comment>Configure requests timeout for payments (request to create and check payments - CURLOPT_TIMEOUT_MS). Default: 15000ms</comment>
+						<depends>
+							<field id="active">1</field>
+						</depends>
+					</field>
+					<field id="floa_timeout_connect" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+						<label>Request connect timeout</label>
+						<config_path>payment/floa_payment/timeout_connect</config_path>
+						<comment>Configure requests timeout connect (CURLOPT_CONNECTTIMEOUT_MS). Default: 2000ms</comment>
+						<depends>
+							<field id="active">1</field>
+						</depends>
+					</field>
+				</group>
 				<group id="floa_payment_methods" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
 					<attribute type="expanded">1</attribute>
 					<comment><![CDATA[You can find more informations on website <a href="https://floapay.readme.io/reference" target="_blank">ReadMe FLOA Pay</a> about merchant configuration.]]></comment>

@@ -121,6 +121,8 @@ class Validateold extends \Magento\Framework\App\Action\Action
             }
         }
 
-        return $this->_redirect($redirectPath);
+        $resultRedirect = $this->resultRedirectFactory->create()->setPath($redirectPath);
+
+        return $resultRedirect;
     }
 }

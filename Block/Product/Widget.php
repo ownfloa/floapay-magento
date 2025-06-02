@@ -302,7 +302,7 @@ class Widget extends View
             }
         } catch (\Exception $ex) {
             $logger = new FloaPayLogger();
-            $logger->info("Widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
+            $logger->info("Product widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
         }
 
         return $this->offers;

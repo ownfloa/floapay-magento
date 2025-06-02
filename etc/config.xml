@@ -26,7 +26,11 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
 	<default>
 		<payment>
-
+			<floa_payment>
+				<timeout_schedules>4000</timeout_schedules>
+				<timeout_payments>15000</timeout_payments>
+				<timeout_connect>2000</timeout_connect>
+			</floa_payment>
 			<cb1xd>
                 <title>Pay in 1 instalment (deferred up to 30 days) with FLOA Bank</title>
 				<active>1</active>

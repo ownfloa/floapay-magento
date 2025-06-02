@@ -32,4 +32,7 @@
 	<type name="Magento\Framework\Session\SessionStartChecker">
         <plugin name="transparent_session_checker" type="FLOA\Payment\Plugin\TransparentSessionChecker" />
     </type>
+	<type name="Magento\Config\Model\Config">
+        <plugin name="admin_system_config_save_plugin" type="FLOA\Payment\Plugin\ObserverConfig" sortOrder="1"/>
+    </type>
 </config>

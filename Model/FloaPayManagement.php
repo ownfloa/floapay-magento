@@ -81,6 +81,12 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     private $timeoutMs;
 
     /** @var int */
+    private $timeoutMsSchedules;
+
+    /** @var int */
+    private $connectTimeoutMs;
+
+    /** @var int */
     public $minAmount;
 
     /** @var int */
@@ -91,6 +97,9 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
 
     /** @var string */
     public $token;
+
+    /** @var string */
+    public $tokenCacheKey;
 
     /** @var int */
     public $active;
@@ -109,12 +118,6 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
 
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     private $_scopeConfig;
-
-    /** @var \Magento\Framework\App\Config\Storage\WriterInterface */
-    private $_configWriter;
-
-    /** @var \Magento\Framework\App\Cache\Manager */
-    private $_cacheManager;
 
     /** @var string */
     private $contextServicesUri;
@@ -174,15 +177,13 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         $this->method = $method;
         $this->_scopeConfig = ObjectManager::getInstance()->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
-        $this->_configWriter = ObjectManager::getInstance()->get(\Magento\Framework\App\Config\Storage\WriterInterface::class);
-        $this->_cacheManager = ObjectManager::getInstance()->get(\Magento\Framework\App\Cache\Manager::class);
         $this->merchantLogin = $this->_scopeConfig->getValue(FloaScopeConfigInterface::MERCHANT_LOGIN, $storeScope, $storeId);
         $this->merchantPassword = $this->_scopeConfig->getValue(FloaScopeConfigInterface::MERCHANT_PWD, $storeScope, $storeId);
         $this->merchantId = $merchantId ? $merchantId : $this->_scopeConfig->getValue(FloaScopeConfigInterface::MERCHANT_ID, $storeScope, $storeId);
         $this->env = $this->_scopeConfig->getValue(FloaScopeConfigInterface::ENV, $storeScope, $storeId);
-        $this->token = $this->_scopeConfig->getValue(FloaScopeConfigInterface::TOKEN);
-        $this->tokenUpdateDate = $this->_scopeConfig->getValue(FloaScopeConfigInterface::TOKEN_UPDATE);
-        $this->tokenEnv = $this->_scopeConfig->getValue(FloaScopeConfigInterface::TOKEN_ENV);
+        $this->tokenCacheKey = 'token-' . $this->env . '-' . $storeScope . '-' . $storeId . '-' . $this->merchantId;
+        $tokenInCache = $this->getCache($this->tokenCacheKey, 'token', true, $this->tokenCacheKey);
+        $this->token = isset($tokenInCache['token']) ? $tokenInCache['token'] : '';
         $this->debug = $this->_scopeConfig->getValue(FloaScopeConfigInterface::DEBUGMODE);
         $this->active = $this->_scopeConfig->getValue('payment/floa_payment/' . $this->method . '_active', $storeScope, $storeId)
                                             && $this->_scopeConfig->getValue(FloaScopeConfigInterface::IS_ACTIVE_PATH, $storeScope, $storeId);
@@ -192,7 +193,9 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $this->contextEligibilityUri = $this->env != 'INTE' ? self::ELIGIBILITY_PROD : self::ELIGIBILITY_INTE;
         $this->contextServicesUri = $this->env != 'INTE' ? self::SERVICES_PROD : self::SERVICES_INTE;
         $this->defaultPaymentOptionRef = isset(self::paymentMethodsAvailable()[$this->method]) ? self::paymentMethodsAvailable()[$this->method]['paymentOptionRef'] : false;
-        $this->timeoutMs = 3000;
+        $this->timeoutMs = $this->_scopeConfig->getValue(FloaScopeConfigInterface::TIMEOUT_PAYMENTS, $storeScope, $storeId);
+        $this->timeoutMsSchedules = $this->_scopeConfig->getValue(FloaScopeConfigInterface::TIMEOUT_SCHEDULES, $storeScope, $storeId);
+        $this->connectTimeoutMs = $this->_scopeConfig->getValue(FloaScopeConfigInterface::TIMEOUT_CONNECT, $storeScope, $storeId);
         $this->contextCheck = $this->checkConfig();
         $this->logger = null;
 
@@ -268,13 +271,12 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
      */
     private function getSecurityToken()
     {
-        if (!empty($this->token) && $this->tokenEnv == $this->env) {
-            if ((time() - $this->tokenUpdateDate) < 3600) {
-                return ['state' => true, 'token' => $this->token];
-            }
+        if (!empty($this->token)) {
+            return ['state' => true, 'token' => $this->token];
         }
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -290,12 +292,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $httpcode = $this->curlgetInfo($ch, CURLINFO_HTTP_CODE);
         if ($httpcode == 200 && $isTokenValid) {
             $this->token = str_replace('"', '', $body);
-            $this->tokenUpdateDate = time();
-            $this->tokenEnv = $this->env;
-            $this->_configWriter->save(FloaScopeConfigInterface::TOKEN, $this->token);
-            $this->_configWriter->save(FloaScopeConfigInterface::TOKEN_UPDATE, $this->tokenUpdateDate);
-            $this->_configWriter->save(FloaScopeConfigInterface::TOKEN_ENV, $this->env);
-            $this->_cacheManager->flush(['config']);
+            $this->setCache(3600, '', 'token', ['token' => $this->token], $this->tokenCacheKey);
 
             return ['state' => true, 'token' => $this->token];
         } else {
@@ -340,6 +337,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -451,6 +449,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $merchantSiteId = $merchantSiteId ? $merchantSiteId : $this->merchantSiteId;
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -470,6 +469,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
             if (isset($responseJson->responseCode) && $responseJson->responseCode == 'success') {
                 return ['state' => true, 'schedules' => $responseJson->schedules];
             } else {
+                $this->addLog('[PAYMENT SCHEDULES] - ' . $body);
                 return [
                     'state' => false,
                     'message' => '[PAYMENT SCHEDULES] No more information.',
@@ -518,6 +518,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -593,6 +594,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -682,6 +684,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
 
             return [
                 'state' => true,
+                'schedules' => $schedules,
                 'datas' => [
                     'amount' => $totalAmount,
                     'paymentResultCode' => $paymentResultCode,
@@ -706,7 +709,8 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $responseJson = $this->getCache('', 'paymentoption', null, 'paymentoption' . $this->method);
         if ($responseJson === false) {
             $ch = $this->curlInit();
-            $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+            $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMsSchedules);
+            $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
             $this->curlSetopt($ch, CURLOPT_HEADER, true);
             $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -718,6 +722,10 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
             $response = $this->curlExec($ch);
             if (curl_errno($ch)) {
                 $error_code = curl_errno($ch);
+                $this->setCache(900,  '', 'paymentoption', [
+                    'state' => false,
+                    'message' => 'Timeout Error',
+                ]);
                 if ($error_code == CURLE_OPERATION_TIMEOUTED) {
                     throw new \Exception('Error timeout CURL - we do not call any other payments options');
                 }
@@ -747,7 +755,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
                 $this->addLog('Error - ' . $message);
                 $this->setCache(1800,  '', 'paymentoption', [
                     'state' => false,
-                    'message' => 'Timeout Error',
+                    'message' => $message,
                 ]);
                 return [
                     'state' => false,
@@ -804,15 +812,16 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
             $this->addLog("Estimated {$cacheType} - cache found for $amount - ($this->method)", false);
 
             return [
-                'state' => true,
-                'amount' => $cacheResponse->amount,
-                'schedules' => $cacheResponse->schedules,
-                'fees' => ($cacheResponse->amount - $amount),
+                'state' => isset($cacheResponse->state) ? (bool) $cacheResponse->state : true,
+                'amount' => isset($cacheResponse->amount) ? $cacheResponse->amount : $amount,
+                'schedules' => isset($cacheResponse->schedules) ? $cacheResponse->schedules : [],
+                'fees' => isset($cacheResponse->amount) ? ($cacheResponse->amount - $amount) : 0,
             ];
         }
 
         $ch = $this->curlInit();
-        $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMsSchedules);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -836,11 +845,14 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
         $this->curlSetopt($ch, CURLOPT_POSTFIELDS, json_encode($content));
         $response = $this->curlExec($ch);
         $header_size = $this->curlgetInfo($ch, CURLINFO_HEADER_SIZE);
-        $curlErrorCode = curl_errno($ch);
 
         $error_code = curl_errno($ch);
         if ((int) $error_code > 0) {
             if ($error_code == CURLE_OPERATION_TIMEOUTED) {
+                $this->setCache($cacheTimeout,  $amount, $cacheType, [
+                    'state' => false,
+                    'message' => 'Error timeout CURL - we do not call any other offers',
+                ]);
                 throw new \Exception('Error timeout CURL - we do not call any other offers');
             }
         }
@@ -926,6 +938,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -1030,6 +1043,7 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         $ch = $this->curlInit();
         $this->curlSetopt($ch, CURLOPT_TIMEOUT_MS, $this->timeoutMs);
+        $this->curlSetopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
         $this->curlSetopt($ch, CURLOPT_HEADER, true);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         $this->curlSetopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -1145,6 +1159,20 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
      */
     private function curlExec($ch)
     {
+        // Get request URI
+        $requestUri = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+
+        // Get PID
+        $pid = getmypid() ?: 'None';
+
+        $logEntry = sprintf(
+            "PID: %s;Request URI: %s",
+            $pid ?: 'None',
+            $requestUri
+        );
+
+        $this->addLog($logEntry);
+
         return curl_exec($ch);
     }
 
@@ -1160,10 +1188,6 @@ class FloaPayManagement implements \FLOA\Payment\Api\FloaPayManagementInterface
     {
         if ($this->cacheEnabled === false) {
             return false;
-        }
-        $cachedApiError = $this->cache->load('apiError');
-        if (empty($cachedApiError) === false) {
-            return [];
         }
         if ($cacheKey === null) {
             $cacheKey = \FLOA\Payment\Model\Cache\Offers::TYPE_IDENTIFIER . $type . $amount;

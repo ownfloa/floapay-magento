@@ -54,8 +54,8 @@
                             "conditions_here" : "<?= $block->escapeJS(__('conditions here')) ?>",
                             "paylater" : "<?= $block->escapeJS(__('PAYLATER')) ?>"
                         },
-                        "offers" : <?= json_encode($block->getOffers()) ?>,
-                        "selectedOffers" : <?= json_encode($block->getSelectedOffer()) ?>,
+                        "offers" : [],
+                        "selectedOffers" : null,
                         "type" : "product"
                     }
                 },

@@ -142,7 +142,7 @@ class Widget extends \FLOA\Payment\Block\Product\Widget
             }
         } catch (\Exception $ex) {
             $logger = new FloaPayLogger();
-            $logger->info("Widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
+            $logger->info("Cart widget - Exception - cb{$oneOffer} - " . $ex->getMessage());
         }
         return $this->offers;
     }
