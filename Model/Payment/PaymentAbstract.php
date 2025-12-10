@@ -137,7 +137,7 @@ abstract class PaymentAbstract extends AbstractMethod
      * @param  mixed $quote
      * @return void
      */
-    public function isAvailable(CartInterface $quote = null)
+    public function isAvailable(?CartInterface $quote = null)
     {
         $apiAvailable = false;
         $floaTools = new FloaTools();

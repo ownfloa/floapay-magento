@@ -30,7 +30,7 @@ class AccountManagement extends \Magento\Customer\Model\AccountManagement
      * IsEmailAvailable
      *
      * @param  mixed $customerEmail
-     * @param  mixed $websiteId
+     * @param  ?mixed $websiteId
      * @return void
      */
     public function isEmailAvailable($customerEmail, $websiteId = null)

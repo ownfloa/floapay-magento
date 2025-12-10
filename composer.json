@@ -2,7 +2,7 @@
     "name": "floa/payment",
     "description": "Pay in severals installments with FloaPay",
     "type": "magento2-module",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "license": "MIT",
     "authors": [
         {
@@ -11,9 +11,6 @@
         }
     ],
     "minimum-stability": "dev",
-    "require-dev": {
-        "prestashop/php-dev-tools": "3.4"
-    },
     "autoload": {
         "files": [
             "registration.php"

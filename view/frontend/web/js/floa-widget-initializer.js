@@ -40,24 +40,30 @@ define([
                     floaLaunchAjaxRefresh(finalPrice);
                 });
             } else {
-                setTimeout(window.initWidgetMagento, 150);
+                console.log(floapay);
+                setTimeout(function() {
+                    floaLaunchAjaxRefresh();
+                }, 150);
             }
         });
 
         function floaLaunchAjaxRefresh(finalPrice = null)
         {
             window.floapay.tries = 0;
-            let qty = 1;
-            if ($('#qty') && $('#qty').length) {
-                qty = $('#qty').val();
+            if (floapay.type !== 'cart') {
+                let qty = 1;
+                if ($('#qty') && $('#qty').length) {
+                    qty = $('#qty').val();
+                }
+                let price = finalPrice;
+                if (price == null || typeof price === 'object') {
+                    price = $('.product-info-price [data-price-amount]').attr('data-price-amount');
+                }
+                finalPrice = price * qty;
             }
-            let price = finalPrice;
-            if (price == null || typeof price === 'object') {
-                price = $('.product-info-price [data-price-amount]').attr('data-price-amount');
-            }
-            finalPrice = price * qty;
             var ajaxData = {
                 ajax: true,
+                type: floapay.type,
                 price: finalPrice
             };
             launchFloaAjax(ajaxData);

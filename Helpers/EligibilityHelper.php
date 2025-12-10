@@ -185,7 +185,7 @@ class EligibilityHelper
     public function saleChannel()
     {
         try {
-            $mobile_detect = new MobileDetect();
+            $mobile_detect = new MobileDetect(null, null);
             if ($mobile_detect->isTablet()) {
                 if ($mobile_detect->is('ipad')) {
                     $result = 'Ipad';

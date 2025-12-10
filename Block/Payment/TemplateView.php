@@ -140,12 +140,13 @@ class TemplateView extends Template implements BlockInterface
      * Function getFormatedPrice
      *
      * @param float $price
+     * @param bool $includeContainer Include or not price container (span) - false for escape !
      *
      * @return string
      */
-    public function getFormatedPrice($amount)
+    public function getFormatedPrice($amount, $includeContainer = true)
     {
-        return $this->priceCurrency->convertAndFormat($amount);
+        return $this->priceCurrency->convertAndFormat($amount, $includeContainer);
     }
 
     /**

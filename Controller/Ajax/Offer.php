@@ -100,6 +100,11 @@ class Offer extends Action
         $request = $this->getRequest();
 
         $price = $request->getParam('price');
+        $type = $request->getParam('type');
+
+        if ($type === 'cart') {
+            $price = $this->checkoutSession->getQuote()->getGrandTotal();
+        }
 
         if (!$price || (bool) $request->getParam('ajax') === false) {
             return $result->setData([

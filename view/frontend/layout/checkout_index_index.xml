@@ -28,7 +28,6 @@
         <referenceContainer name="content">
             <block class="FLOA\Payment\Block\Payment\TemplateView"
                    name="checkout.floa.template"
-				   cacheable="false"
                    template="FLOA_Payment::payment.phtml">
             </block>
         </referenceContainer>

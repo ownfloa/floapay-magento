@@ -47,7 +47,7 @@ $configs = $block->getFormConfiguration();
                             <span data-bind="text: item.schedules[0].amount"></span>
                         <!-- /ko -->
                         <!-- ko if: (item.code == "cb1xd" && window.checkoutConfig.payment.floa.defType == "1") -->
-                            <span><?= $block->getFormatedPrice(0) ?></span>
+                            <span><?= $block->escapeHtml($block->getFormatedPrice(0, false)) ?></span>
                         <!-- /ko -->
                     </span>
                 </span>
@@ -203,7 +203,7 @@ $configs = $block->getFormConfiguration();
                                 <?= $block->escapeHtml(__($label)) ?>
                             <?php endif; ?>
                             <?php if ($tooltip): ?>
-                                <a href="<?= ($fieldName == 'accept_terms_conditions') ? $cgvLink : $privacyPolicyLink ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
+                                <a href="<?= ($fieldName == 'accept_terms_conditions') ? $block->escapeHtml($cgvLink) : $block->escapeHtml($privacyPolicyLink) ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
                             <?php endif; ?>
                         </label>
                     <?php endif; ?>
@@ -335,7 +335,7 @@ $configs = $block->getFormConfiguration();
                                 <?= $block->escapeHtml(__($label)) ?>
                             <?php endif; ?>
                             <?php if ($tooltip): ?>
-                                <a href="<?= ($fieldName == 'accept_terms_conditions') ? $cgvLink : $privacyPolicyLink ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
+                                <a href="<?= ($fieldName == 'accept_terms_conditions') ? $block->escapeHtml($cgvLink) : $block->escapeHtml($privacyPolicyLink) ?>" target="_blank"><?= $block->escapeHtml(__($tooltip)) ?></a>
                             <?php endif; ?>
                         </label>
                     <?php endif; ?>
@@ -365,7 +365,7 @@ $configs = $block->getFormConfiguration();
                     <!-- /ko -->
                 </div>
             </div>
-            <div class="fl-gauge-min"><?= $block->getFormatedPrice(0) ?></div>
+            <div class="fl-gauge-min"><?= $block->escapeHtml($block->getFormatedPrice(0, false)) ?></div>
             <div class="fl-gauge-max" data-bind="text: item.amount"></div>
         </div>
         <div class="fl-middle-container">
@@ -384,7 +384,7 @@ $configs = $block->getFormConfiguration();
                                 <!-- ko if: ( item.code == "cb1xd" && schedule.key == 0 ) -->
                                 <span class="fl-lines-steps">
                                     <span class="fl-date fl-bold" data-bind="text: '<?= $block->escapeJs(__('Today')) ?>'"></span>
-                                    <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                                    <span class="fl-amount fl-bold"><?= $block->escapeHtml($block->getFormatedPrice(0, false)) ?></span>
                                 </span>
                                 <!-- /ko -->
                                 <!-- ko if: ( schedule.key == 0 && item.echs > 4 ) || ( schedule.key >= 0 && item.echs <= 4 ) -->
@@ -423,7 +423,7 @@ $configs = $block->getFormConfiguration();
                         <span data-bind="text: item.fees"></span>
                         <!-- /ko -->
                         <!-- ko if: ( item.rawFees <= 0 ) -->
-                        <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                        <span class="fl-amount fl-bold"><?= $block->escapeHtml($block->getFormatedPrice(0, false)) ?></span>
                         <!-- /ko -->
                     </div>
                 <!-- /ko -->
@@ -446,7 +446,7 @@ $configs = $block->getFormConfiguration();
                             <!-- ko if: ( item.code == "cb1xd" && schedule.key == 0 ) -->
                                 <span class="fl-lines-steps">
                                     <span class="fl-date fl-bold" data-bind="text: '<?= $block->escapeJs(__('Today')) ?>'"></span>
-                                    <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                                    <span class="fl-amount fl-bold"><?= $block->escapeHtml($block->getFormatedPrice(0, false)) ?></span>
                                 </span>
                             <!-- /ko -->
                             <!-- ko if: ( schedule.key == 0 && item.echs > 4 ) || ( schedule.key >= 0 && item.echs <= 4 ) -->
@@ -483,7 +483,7 @@ $configs = $block->getFormConfiguration();
                 <span data-bind="text: item.fees"></span>
                 <!-- /ko -->
                 <!-- ko if: ( item.rawFees <= 0 ) -->
-                <span class="fl-amount fl-bold"><?= $block->getFormatedPrice(0) ?></span>
+                <span class="fl-amount fl-bold"><?= $block->escapeHtml($block->getFormatedPrice(0, false)) ?></span>
                 <!-- /ko -->
             </div>
             <!-- /ko -->

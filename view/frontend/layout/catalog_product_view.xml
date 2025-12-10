@@ -21,10 +21,11 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="product.info.form.content">
-            <block class="FLOA\Payment\Block\Product\Widget" name="afterprice.floa.widget" cacheable="false"
+            <block class="FLOA\Payment\Block\Product\Widget" name="afterprice.floa.widget" 
                    as="afterPriceWidgetFloa" template="FLOA_Payment::product/widget.phtml" before="product.info.addtocart">
                 <arguments>
                     <argument name="location" xsi:type="string">product_price_after</argument>
+                    <argument name="cache_lifetime" xsi:type="number">0</argument>
                 </arguments>
             </block>
         </referenceContainer>

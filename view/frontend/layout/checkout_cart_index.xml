@@ -2,7 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="cart.summary">
-            <block class="FLOA\Payment\Block\Cart\Widget" name="checkout.cart.floa.widget" cacheable="false" 
+            <block class="FLOA\Payment\Block\Cart\Widget" name="checkout.cart.floa.widget"  
                 template="FLOA_Payment::cart/widget.phtml" after="checkout.cart.crosssell"/>
         </referenceContainer>
     </body>

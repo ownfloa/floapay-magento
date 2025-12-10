@@ -28,11 +28,11 @@ class ObserverConfig
         $data = $subject->getData();
 
         if ($section !== 'payment') {
-            return $proceed;
+            return $proceed();
         }
 
         if (isset($data['groups']['floa_payment']) === false) {
-            return $proceed;
+            return $proceed();
         }
 
         $_types = [
